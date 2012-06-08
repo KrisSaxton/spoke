@@ -32,38 +32,14 @@ class SpokeUser(SpokeLDAP):
         self.org_dn = self.org['data'][0].__getitem__(0)
         self.org_attrs = self.org['data'][0].__getitem__(1)
         self.org_classes = self.org_attrs['objectClass']
-        try:
-            self.org_attr = self.config.get('ATTR_MAP', 'org_attr')
-        except:
-            self.org_attr = 'o'
-        try:
-            self.container_attr = self.config.get('ATTR_MAP', 'container_attr')
-        except:
-            self.container_attr = 'ou'
-        try:
-            self.user_login = self.config.get('ATTR_MAP', 'user_login')
-        except:
-            self.user_login = 'aenetAccountLoginName'
-        try:
-            self.user_class = self.config.get('ATTR_MAP', 'user_class')
-        except:
-            self.user_class = 'aenetAccount'
-        try:
-            self.user_key = self.config.get('ATTR_MAP', 'user_key')
-        except:
-            self.user_key = 'uid'
-        try:
-            self.user_name = self.config.get('ATTR_MAP', 'user_name')
-        except:
-            self.user_name = 'aenetAccountDisplayName'
-        try:
-            self.user_enable = self.config.get('ATTR_MAP', 'user_enable')
-        except:
-            self.user_enable = 'aenetAccountEnabled'
-        try:
-            self.user_container = self.config.get('ATTR_MAP', 'user_container')
-        except:
-            self.user_container = 'people'
+        self.org_attr = self.config.get('ATTR_MAP', 'org_attr', 'o')
+        self.container_attr = self.config.get('ATTR_MAP', 'container_attr', 'ou')
+        self.user_login = self.config.get('ATTR_MAP', 'user_login', 'aenetAccountLoginName')
+        self.user_class = self.config.get('ATTR_MAP', 'user_class', 'aenetAccount')
+        self.user_key = self.config.get('ATTR_MAP', 'user_key', 'uid')
+        self.user_name = self.config.get('ATTR_MAP', 'user_name', 'aenetAccountDisplayName')
+        self.user_enable = self.config.get('ATTR_MAP', 'user_enable', 'aenetAccountEnabled')
+        self.user_container = self.config.get('ATTR_MAP', 'user_container', 'people')
         
     def _get_org(self, org_name):
         """Retrieve our org object."""

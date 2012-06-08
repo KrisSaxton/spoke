@@ -55,25 +55,10 @@ class SpokeSubnet(SpokeKV):
                 self.kv_name = str(self.network)
                 self.kv_free = '%s:%s:free' % (self.network, self.mask)
                 self.kv_aloc = '%s:%s:aloc' % (self.network, self.mask)
-            try:
-                self.ip_ldap_enabled = self.config.get('IP', 'ip_ldap_enabled')
-            except:
-                self.ip_ldap_enabled = False
-            
-            try:
-                self.ip_ldap_attr = self.config.get('IP', 'ip_ldap_attr')
-            except:
-                self.ip_ldap_attr = 'dhcpStatements'
-            
-            try:
-                self.ip_ldap_key = self.config.get('IP', 'ip_ldap_key')
-            except:
-                self.ip_ldap_key = 'fixed-address'
-            try:
-                self.ip_ldap_search_base = self.config.get('IP', 
-                                                       'ip_ldap_search_base')
-            except:
-                self.ip_ldap_search_base = False
+            self.ip_ldap_enabled = self.config.get('IP', 'ip_ldap_enabled', False)
+            self.ip_ldap_attr = self.config.get('IP', 'ip_ldap_attr', 'dhcpStatements')
+            self.ip_ldap_key = self.config.get('IP', 'ip_ldap_key', 'fixed-address')
+            self.ip_ldap_search_base = self.config.get('IP', 'ip_ldap_search_base', False)
         else:
             (self.network, self.mask) = (None, None)
 

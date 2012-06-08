@@ -49,6 +49,14 @@ key2 = value 2
     def test_key_false(self):
         """Test for absent key; return False."""
         self.assertFalse(self.config.has_option('testsection2', 'key3'))
+        
+    def test_default_key(self):
+        """Test for absent key with default; return default."""
+        self.assertEqual(self.config.get('testsection1', 'key3', 'def'), 'def')
+        
+    def test_default_with_present_key(self):
+        """Test for present key with default; return key value."""
+        self.assertEqual(self.config.get('testsection1', 'key1', 'def'), 'value1')
     
     def test_val_true(self):
         """Fetch a particular value."""

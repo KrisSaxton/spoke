@@ -39,63 +39,24 @@ class SpokeHost(SpokeLDAP):
         self.org_dn = self.org['data'][0].__getitem__(0)
         self.org_attrs = self.org['data'][0].__getitem__(1)
         self.org_classes = self.org_attrs['objectClass']
-        try:
-            self.container_attr = self.config.get('ATTR_MAP', 'container_attr')
-        except:
-            self.container_attr = 'ou'
-        try:
-            self.host_container = self.config.get('HOST', 'host_container')
-        except:
-            self.host_container = 'hosts'
+        self.container_attr = self.config.get('ATTR_MAP', 'container_attr', 'ou')
+        self.host_container = self.config.get('HOST', 'host_container', 'hosts')
         self.host_container_dn = '%s=%s,%s' % (self.container_attr, \
                                             self.host_container, self.org_dn)
-        try:
-            self.host_class = self.config.get('HOST', 'host_class')
-        except:
-            self.host_class = 'aenetHost'
-        try:
-            self.host_key = self.config.get('HOST', 'host_key')
-        except:
-            self.host_key = 'cn'
-        try:
-            self.host_uuid_attr = self.config.get('HOST', 'host_uuid_attr')
-        except:
-            self.host_uuid_attr = 'aenetHostUUID'
-        try:
-            self.host_name_attr = self.config.get('HOST', 'host_name_attr')
-        except:
-            self.host_name_attr = 'aenetHostName'
-        try:
-            self.host_cpu_attr = self.config.get('HOST', 'host_cpu_attr')
-        except:
-            self.host_cpu_attr = 'aenetHostCPU'
-        try:
-            self.host_mem_attr = self.config.get('HOST', 'host_mem_attr')
-        except:
-            self.host_mem_attr = 'aenetHostMem'
-        try:
-            self.host_extra_opts_attr = self.config.get('HOST', 
-                                                        'host_extra_opts_attr')
-        except:
-            self.host_extra_opts_attr = 'aenetHostExtraOpts'
-        try:
-            self.host_family_attr = self.config.get('HOST', 'host_family_attr')
-        except:
-            self.host_family_attr = 'aenetHostFamily'
-        try:
-            self.host_network_layout_attr = self.config.get('HOST', 
-                                                    'host_network_layout_attr')
-        except:
-            self.host_network_layout_attr = 'aenetHostNetworkLayout'
-        try:
-            self.host_storage_layout_attr = self.config.get('HOST', 
-                                                    'host_storage_layout_attr')
-        except:
-            self.host_storage_layout_attr = 'aenetHostStorageLayout'
-        try:
-            self.host_type_attr = self.config.get('HOST', 'host_type_attr')
-        except:
-            self.host_type_attr = 'aenetHostType'   
+        self.host_class = self.config.get('HOST', 'host_class', 'aenetHost')
+        self.host_key = self.config.get('HOST', 'host_key', 'cn')
+        self.host_uuid_attr = self.config.get('HOST', 'host_uuid_attr', 'aenetHostUUID')
+        self.host_name_attr = self.config.get('HOST', 'host_name_attr', 'aenetHostName')
+        self.host_cpu_attr = self.config.get('HOST', 'host_cpu_attr', 'aenetHostCPU')
+        self.host_mem_attr = self.config.get('HOST', 'host_mem_attr', 'aenetHostMem')
+        self.host_extra_opts_attr = self.config.get('HOST', 
+                                'host_extra_opts_attr', 'aenetHostExtraOpts')
+        self.host_family_attr = self.config.get('HOST', 'host_family_attr', 'aenetHostFamily')
+        self.host_network_layout_attr = self.config.get('HOST', 
+                        'host_network_layout_attr', 'aenetHostNetworkLayout')
+        self.host_storage_layout_attr = self.config.get('HOST', 
+                        'host_storage_layout_attr', 'aenetHostStorageLayout')
+        self.host_type_attr = self.config.get('HOST', 'host_type_attr', 'aenetHostType')
     
     def _get_org(self, org_name):
         """Retrieve our org object."""
@@ -239,22 +200,11 @@ class SpokeHostUUID(SpokeLDAP):
         self.config = config.setup()
         self.log = logger.setup(__name__)
         self.search_scope = 0 #ldap.SCOPE_BASE
-        try:
-            self.next_uuid_attr = self.config.get('ATTR_MAP','next_uuid_attr')
-        except:
-            self.next_uuid_attr = 'aenetHostUUID'
-        try:
-            self.next_uuid_dn = self.config.get('ATTR_MAP','next_uuid_dn')
-        except:
-            self.next_uuid_dn = self.config.get('LDAP','basedn')
-        try:
-            self.next_uuid_class = self.config.get('ATTR_MAP','next_uuid_class')
-        except:
-            self.next_uuid_class = 'aenetNextUUID'
-        try:
-            self.next_uuid_start = self.config.get('ATTR_MAP','next_uuid_start')
-        except:
-            self.next_uuid_start = 1     
+        self.next_uuid_attr = self.config.get('ATTR_MAP','next_uuid_attr', 'aenetHostUUID')
+        self.next_uuid_dn = self.config.get('LDAP','basedn')
+        self.next_uuid_dn = self.config.get('ATTR_MAP','next_uuid_dn', self.next_uuid_dn)
+        self.next_uuid_class = self.config.get('ATTR_MAP','next_uuid_class', 'aenetNextUUID')
+        self.next_uuid_start = self.config.get('ATTR_MAP','next_uuid_start', 1)   
         self.next_uuid = self._get_next_uuid_dn()['data']
         self.next_uuid_attrs = self.next_uuid[0].__getitem__(1)
         self.next_uuid_classes = self.next_uuid_attrs['objectClass']

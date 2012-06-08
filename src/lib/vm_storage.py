@@ -49,10 +49,7 @@ class SpokeVMStorage:
         self._lookupInterfaces()
         #And this one does the same for disks.
         self._lookupDisks()
-        try:
-            self.search_headers = self.config.get('VM', 'search_headers')
-        except:
-            self.search_headers = 'name,uuid'
+        self.search_headers = self.config.get('VM', 'search_headers', 'name,uuid')
         self.headers = self.search_headers.split(',')
         def _error_handler(self, err):
             msg = "Ignoring Libvirt error %s)" % err
@@ -418,10 +415,7 @@ class SpokeVMStorageXen(SpokeVMStorage):
         '''Get some basic config and connect to hypervisor'''
         SpokeVMStorage.__init__(self)
         self.hv_uri = hv_uri     
-        try:
-            self.uuid_format = self.config.get('VM', 'xen_uuid_format')
-        except:
-            self.uuid_format = '00000000-0000-0000-0000-XXXXXXXXXXXX'   
+        self.uuid_format = self.config.get('VM', 'xen_uuid_format', '00000000-0000-0000-0000-XXXXXXXXXXXX')
         try:
             self.conn = libvirt.open(self.hv_uri)
             msg = "Successfully connected to: " + self.hv_uri

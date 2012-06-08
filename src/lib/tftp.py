@@ -30,14 +30,8 @@ class SpokeTFTP:
         if not tftp_root:
             tftp_root = self.config.get('TFTP', 'tftp_root')
         self.tftp_root = common.validate_filename(tftp_root)
-        try:
-            self.tftp_conf_dir = self.config.get('TFTP', 'tftp_conf_dir')
-        except:
-            self.tftp_conf_dir = 'pxelinux.cfg'
-        try:
-            self.tftp_mac_prefix = self.config.get('TFTP', 'tftp_mac_prefix')
-        except:
-            self.tftp_mac_prefix = '01'
+        self.tftp_conf_dir = self.config.get('TFTP', 'tftp_conf_dir', 'pxelinux.cfg')
+        self.tftp_mac_prefix = self.config.get('TFTP', 'tftp_mac_prefix', '01')
         # Add the delimiter (makes life easier when concating strings
         self.tftp_prefix = self.tftp_mac_prefix + '-' 
         #check file exists in the TFTP directory

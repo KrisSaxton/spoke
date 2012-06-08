@@ -39,16 +39,10 @@ class SpokeKVConn:
     def __init__(self):
         """Bind to Redis server, return an redis connection object."""
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.kv_host = self.config.get('KV', 'kv_host')
-        try:
-            self.kv_port = int(self.config.get('KV', 'kv_port'))
-        except:
-            self.kv_port = 6379
-        try:
-            self.kv_db = self.config.get('KV', 'kv_db')
-        except:
-            self.kv_db = '0'
+        self.kv_port = int(self.config.get('KV', 'kv_port', 6379))
+        self.kv_db = self.config.get('KV', 'kv_db', '0')
         try:
             self.KV = redis.StrictRedis(host=self.kv_host, port=self.kv_port,
                                          db=self.kv_db)
@@ -68,5 +62,5 @@ class SpokeKV:
         """Parse configuration, setup logging; 
         bind to Redis server and return a Redis connection object."""
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.KV = setup().KV

@@ -34,15 +34,12 @@ class SpokeDHCPServer(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
         self.dhcp_server_class = 'dhcpServer'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config') 
         
     def create(self, dhcp_server):
         """Create a DHCP server; return a DHCP server object."""
@@ -91,10 +88,7 @@ class SpokeDHCPService(SpokeLDAP):
         self.retrieve_attr = None
         self.dhcp_service_class = 'dhcpService'
         self.dhcp_options_class = 'dhcpOptions'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config')
         
     def create(self, dhcp_server):
         """Create a DHCP service; return DHCP service objects."""
@@ -144,10 +138,7 @@ class SpokeDHCPSubnet(SpokeLDAP):
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
         self.dhcp_subnet_class = 'dhcpSubnet'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config')
         self.dhcp_server = dhcp_server
         self.dhcp_service_name = self.dhcp_server + self.dhcp_conf_suffix
         self.dhcp_service = self._get_dhcp_service(self.dhcp_server)
@@ -240,10 +231,7 @@ class SpokeDHCPGroup(SpokeLDAP):
         self.retrieve_attr = None
         self.dhcp_group_class = 'dhcpGroup'
         self.dhcp_options_class = 'dhcpOptions'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config')
         self.service_name = dhcp_server + self.dhcp_conf_suffix
         self.service_dn = 'cn=%s,%s' % (self.service_name, self.base_dn)
         
@@ -289,10 +277,7 @@ class SpokeDHCPHost(SpokeLDAP):
         self.retrieve_attr = None
         self.dhcp_host_class = 'dhcpHost'
         self.dhcp_options_class = 'dhcpOptions'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config')
         self.dhcp_server = dhcp_server
         self.dhcp_group_name = group_name
         group = self._get_dhcp_group(self.dhcp_server, self.dhcp_group_name)
@@ -364,10 +349,7 @@ class SpokeDHCPAttr(SpokeLDAP):
         self.dhcp_options_class = 'dhcpOptions'
         self.dhcp_service_class = 'dhcpService'
         self.dhcp_option_attr = 'dhcpOption'
-        try:
-            self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix')
-        except:
-            self.dhcp_conf_suffix = '-config'
+        self.dhcp_conf_suffix = self.config.get('DHCP', 'dhcp_conf_suffix', '-config')
         self.dhcp_server = dhcp_server
         self.service_name = self.dhcp_server + self.dhcp_conf_suffix
         self.dhcp_service = self._get_dhcp_service(self.dhcp_server)

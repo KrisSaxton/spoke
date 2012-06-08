@@ -44,14 +44,8 @@ class SpokePwd(SpokeLDAP):
         self.user_attrs = self.user['data'][0].__getitem__(1)
         self.user_classes = self.user_attrs['objectClass']
         self.server = self.config.get('LDAP', 'server')
-        try:
-            self.port = self.config.get('LDAP', 'port')
-        except:
-            self.port = '389'
-        try:
-            self.start_tls = self.config.get('LDAP', 'start_tls')
-        except:
-            self.start_tls = False
+        self.port = self.config.get('LDAP', 'port', '389')
+        self.start_tls = self.config.get('LDAP', 'start_tls', False)
         self.search_scope = 2 # ldap.SUB
         
     def _get_user(self, org_name, user_id):

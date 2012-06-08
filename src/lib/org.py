@@ -26,37 +26,16 @@ class SpokeOrg(SpokeLDAP):
         self.search_scope = 2 # ldap.SCOPE_SUBTREE
         self.retrieve_attr = None
         self.base_dn = self.config.get('LDAP', 'basedn')
-        try:
-            self.org_class = self.config.get('ATTR_MAP', 'org_class')
-        except:
-            self.org_class = 'organization'
-        try:
-            self.user_class = self.config.get('ATTR_MAP', 'user_class')
-        except:
-            self.user_class = 'aenetAccount'
-        try:
-            self.org_attr = self.config.get('ATTR_MAP', 'org_attr')
-        except:
-            self.org_attr = 'o'
-        try:
-            self.container_attr = self.config.get('ATTR_MAP', 'container_attr')
-        except:
-            self.container_attr = 'ou'
-        try:
-            self.container_class = self.config.get('ATTR_MAP', \
-                                                   'container_class')
-        except:
-            self.container_class = 'organizationalUnit'
-        try:
-            self.org_def_children = self.config.get('ATTR_MAP', \
-                                                    'org_def_children')
-        except:
-            self.org_def_children = 'people,groups,dns,hosts'
+        self.org_class = self.config.get('ATTR_MAP', 'org_class', 'organization')
+        self.user_class = self.config.get('ATTR_MAP', 'user_class', 'aenetAccount')
+        self.org_attr = self.config.get('ATTR_MAP', 'org_attr', 'o')
+        self.container_attr = self.config.get('ATTR_MAP', 'container_attr', 'ou')
+        self.container_class = self.config.get('ATTR_MAP', \
+                                        'container_class', 'organizationalUnit')
+        self.org_def_children = self.config.get('ATTR_MAP', \
+                                'org_def_children', 'people,groups,dns,hosts')
         self.org_children = self.org_def_children.split(',')
-        try:
-            self.org_suffix_attr = self.config.get('ATTR_MAP', 'org_suffix')
-        except:
-            self.org_suffix_attr = 'aenetAccountSuffix'
+        self.org_suffix_attr = self.config.get('ATTR_MAP', 'org_suffix', 'aenetAccountSuffix')
             
     def create(self, org_name, org_children=None, suffix=None):
         """Create organisation (+containers); return organisation object."""
@@ -160,15 +139,9 @@ class SpokeOrgChild(SpokeLDAP):
             msg = 'Org %s not found: cannot delete children' % self.org_name
             raise error.NotFound(msg)
         self.org_dn = self.org['data'][0].__getitem__(0)
-        try:
-            self.container_attr = self.config.get('ATTR_MAP', 'container_attr')
-        except:
-            self.container_attr = 'ou'
-        try:
-            self.container_class = self.config.get('ATTR_MAP', \
-                                                   'container_class')
-        except:
-            self.container_class = 'organizationalUnit'
+        self.container_attr = self.config.get('ATTR_MAP', 'container_attr', 'ou')
+        self.container_class = self.config.get('ATTR_MAP', \
+                                        'container_class', 'organizationalUnit')
             
     def _get_org(self, org_name):
         """Retrieve our org object."""

@@ -29,7 +29,7 @@ class SpokeDNSResource(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -38,87 +38,27 @@ class SpokeDNSResource(SpokeLDAP):
         self.org_dn = self.org['data'][0].__getitem__(0)
         self.org_attrs = self.org['data'][0].__getitem__(1)
         self.org_classes = self.org_attrs['objectClass']
-        try:
-            self.dns_cont_attr = self.config.get('DNS', 'dns_cont_attr')
-        except:
-            self.dns_cont_attr = 'ou'
-        try:
-            self.dns_cont_name = self.config.get('DNS', 'dns_cont_name')
-        except:
-            self.dns_cont_name = 'dns'
-        try:
-            self.dns_cont_class = self.config.get('ATTR_MAP', \
-                                                   'container_class')
-        except:
-            self.dns_cont_class = 'organizationalUnit'
-        try:
-            self.dns_zone_name_attr = self.config.get('DNS', 'dns_zone_attr')
-        except:
-            self.dns_zone_name_attr = 'zoneName'
-        try:
-            self.dns_zone_class = self.config.get('DNS', 'dns_zone_class')
-        except:
-            self.dns_zone_class = 'dNSZone'
-        try:
-            self.dns_resource_attr = self.config.get('DNS','dns_resource_attr')
-        except:
-            self.dns_resource_attr = 'relativeDomainName'
-        try:
-            self.dns_record_class = self.config.get('DNS','dns_record_class')
-        except:
-            self.dns_record_class = 'IN'
-        try:
-            self.dns_default_ttl = self.config.get('DNS', 'dns_default_ttl')
-        except:
-            self.dns_default_ttl = '86400'
-        try:
-            self.dns_min_ttl = self.config.get('DNS', 'dns_min_ttl')
-        except:
-            self.dns_min_ttl = '3600'
-        try:
-            self.dns_serial_start = self.config.get('DNS', 'dns_serial_start')
-        except:
-            self.dns_serial_start = '1'
-        try:
-            self.dns_slave_refresh = self.config.get('DNS','dns_slave_refresh')
-        except:
-            self.dns_slave_refresh = '3600'
-        try:    
-            self.dns_slave_retry = self.config.get('DNS', 'dns_slave_retry')
-        except:
-            self.dns_slave_retry = '600'
-        try:
-            self.dns_slave_expire = self.config.get('DNS', 'dns_slave_expire')
-        except:
-            self.dns_slave_expire = '86400'
-        try:
-            self.dns_ns_attr = self.config.get('DNS', 'dns_ns_attr')
-        except:
-            self.dns_ns_attr = 'nSRecord'
-        try:    
-            self.dns_soa_attr = self.config.get('DNS', 'dns_soa_attr')
-        except:
-            self.dns_soa_attr = 'sOARecord'
-        try:    
-            self.dns_a_attr = self.config.get('DNS', 'dns_a_attr')
-        except:
-            self.dns_a_attr = 'aRecord'
-        try:    
-            self.dns_cname_attr = self.config.get('DNS', 'dns_cname_attr')
-        except:
-            self.dns_cname_attr = 'cNAMERecord'
-        try:    
-            self.dns_mx_attr = self.config.get('DNS', 'dns_mx_attr')
-        except:
-            self.dns_mx_attr = 'mXRecord'
-        try:
-            self.dns_txt_attr = self.config.get('TXT', 'dns_txt_attr')
-        except:
-            self.dns_txt_attr = 'tXTRecord'
-        try:
-            self.dns_ptr_attr = self.config.get('PTR', 'dns_ptr_attr')
-        except:
-            self.dns_ptr_attr = 'pTRRecord'
+        self.dns_cont_attr = self.config.get('DNS', 'dns_cont_attr', 'ou')
+        self.dns_cont_name = self.config.get('DNS', 'dns_cont_name', 'dns')
+        self.dns_cont_class = self.config.get('ATTR_MAP', \
+                                        'container_class', 'organizationalUnit')
+        self.dns_zone_name_attr = self.config.get('DNS', 'dns_zone_attr', 'zoneName')
+        self.dns_zone_class = self.config.get('DNS', 'dns_zone_class', 'dNSZone')
+        self.dns_resource_attr = self.config.get('DNS','dns_resource_attr', 'relativeDomainName')
+        self.dns_record_class = self.config.get('DNS','dns_record_class', 'IN')
+        self.dns_default_ttl = self.config.get('DNS', 'dns_default_ttl', '86400')
+        self.dns_min_ttl = self.config.get('DNS', 'dns_min_ttl', '3600')
+        self.dns_serial_start = self.config.get('DNS', 'dns_serial_start', '1')
+        self.dns_slave_refresh = self.config.get('DNS','dns_slave_refresh', '3600')
+        self.dns_slave_retry = self.config.get('DNS', 'dns_slave_retry', '600')
+        self.dns_slave_expire = self.config.get('DNS', 'dns_slave_expire', '86400')
+        self.dns_ns_attr = self.config.get('DNS', 'dns_ns_attr', 'nSRecord')
+        self.dns_soa_attr = self.config.get('DNS', 'dns_soa_attr', 'sOARecord')
+        self.dns_a_attr = self.config.get('DNS', 'dns_a_attr', 'aRecord')
+        self.dns_cname_attr = self.config.get('DNS', 'dns_cname_attr', 'cNAMERecord')
+        self.dns_mx_attr = self.config.get('DNS', 'dns_mx_attr', 'mXRecord')
+        self.dns_txt_attr = self.config.get('TXT', 'dns_txt_attr', 'tXTRecord')
+        self.dns_ptr_attr = self.config.get('PTR', 'dns_ptr_attr', 'pTRRecord')
         self.dns_type_attrs = {'SOA':self.dns_soa_attr,
                                'NS':self.dns_ns_attr,
                                'A':self.dns_a_attr,

@@ -14,6 +14,7 @@ TODO raises exceptions for mailbox already exists or not found.
 # core modules
 import re
 import imaplib
+import traceback
 
 # own modules
 import error
@@ -29,23 +30,17 @@ class SpokeMbx():
         self.config = config.setup()
         self.log = logger.setup(__name__)
         server = self.config.get('IMAP', 'server')
-        try:
-            port = int(self.config.get('IMAP', 'port'))
-        except:
-            port = 143
+        port = int(self.config.get('IMAP', 'port', 143))
         self.user = self.config.get('IMAP', 'user')
         password = self.config.get('IMAP', 'password')
-        try:
-            self.mailbox_group = self.config.get('IMAP', 'mailbox_group')
-        except:
-            self.mailbox_group = 'user'
+        self.mailbox_group = self.config.get('IMAP', 'mailbox_group', 'user')
         self.sep = '/'
         try:
             self.imap = imaplib.IMAP4(server, port)
-        except imaplib.socket.error, e:
-            self.log.error(e)
-            msg = '%s: %s' % ('IMAP connection error', e)
-            raise error.SpokeIMAPError(msg)
+        except imaplib.socket.error:
+            trace = traceback.format_exec()
+            msg = '%s: %s' % ('IMAP connection error')
+            raise error.SpokeIMAPError(msg, trace)
         self.imap.login(self.user, password)
     
     def _validate_mailbox_name(self, mailbox_name):
@@ -55,7 +50,6 @@ class SpokeMbx():
         valid_mailbox = pattern.match(mailbox_name)
         if not valid_mailbox:            
             msg = '%s is not a valid mailbox name' % mailbox_name
-            self.log.error(msg)
             raise error.InputError(msg)
         return mailbox_name
 
@@ -91,7 +85,6 @@ class SpokeMbx():
         res, msg = self.imap.create(mailbox)
         msg = msg[0]
         if res != 'OK':
-            self.log.error(msg)
             raise error.SpokeIMAPError(msg)
         self.imap.setacl(mailbox, self.user, 'c') # Grant admin user delete
         self.log.debug(msg)
@@ -105,7 +98,6 @@ class SpokeMbx():
         res, msg = self.imap.delete(mailbox)
         msg = msg[0]
         if res != 'OK':
-            self.log.error(msg)
             raise error.SpokeIMAPError(msg)
         self.log.debug(msg)
         return True

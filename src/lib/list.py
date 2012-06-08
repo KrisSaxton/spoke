@@ -27,7 +27,7 @@ class SpokeMailingList(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 2 #ldap.SCOPE_SUB
         self.org_name = org_name
@@ -35,40 +35,16 @@ class SpokeMailingList(SpokeLDAP):
         self.org_dn = self.org['data'][0].__getitem__(0)
         self.org_attrs = self.org['data'][0].__getitem__(1)
         self.org_classes = self.org_attrs['objectClass']
-        try:
-            self.container_attr = self.config.get('ATTR_MAP', 'container_attr')
-        except:
-            self.container_attr = 'ou'
-        try:
-            self.list_container = self.config.get('ATTR_MAP', 'user_container')
-        except:
-            self.list_container = 'people'
-        try:
-            self.list_key = self.config.get('ATTR_MAP', 'user_key')
-        except:
-            self.list_key = 'uid'
-        try:
-            self.list_class = self.config.get('ATTR_MAP', 'smtp_class')
-        except:
-            self.list_class = 'aenetPostfix'
-        try:
-            self.list_address_attr = self.config.get('ATTR_MAP', 'smtp_address')
-        except:
-            self.list_address_attr = 'aenetPostfixEmailAccept'
-        try:
-            self.list_destination_attr = self.config.get('ATTR_MAP', \
-                                                    'smtp_destination')
-        except:
-            self.list_destination_attr = 'aenetPostfixEmailDeliver'
-        try:
-            self.list_enable_attr = self.config.get('ATTR_MAP', 'smtp_enable')
-        except:
-            self.list_enable_attr = 'aenetPostfixEnabled'
-        try:
-            self.list_pri_address_attr = self.config.get('ATTR_MAP', \
-                                                    'smtp_pri_address')
-        except:
-            self.list_pri_address_attr = 'aenetPostfixEmailAddress'
+        self.container_attr = self.config.get('ATTR_MAP', 'container_attr', 'ou')
+        self.list_container = self.config.get('ATTR_MAP', 'user_container', 'people')
+        self.list_key = self.config.get('ATTR_MAP', 'user_key', 'uid')
+        self.list_class = self.config.get('ATTR_MAP', 'smtp_class', 'aenetPostfix')
+        self.list_address_attr = self.config.get('ATTR_MAP', 'smtp_address', 'aenetPostfixEmailAccept')
+        self.list_destination_attr = self.config.get('ATTR_MAP', \
+                                'smtp_destination', 'aenetPostfixEmailDeliver')
+        self.list_enable_attr = self.config.get('ATTR_MAP', 'smtp_enable', 'aenetPostfixEnabled')
+        self.list_pri_address_attr = self.config.get('ATTR_MAP', \
+                                'smtp_pri_address', 'aenetPostfixEmailAddress')
         self.retrieve_attr = [self.list_address_attr]
     
     def _validate_input(self, list_address):
@@ -178,32 +154,14 @@ class SpokeMailingListMember(SpokeLDAP):
         self.list_attrs = self.list['data'][0].__getitem__(1)
         self.list_classes = self.list_attrs['objectClass']
         
-        try:
-            self.list_key = self.config.get('ATTR_MAP', 'user_key')
-        except:
-            self.list_key = 'uid'
-        try:
-            self.list_class = self.config.get('ATTR_MAP', 'smtp_class')
-        except:
-            self.list_class = 'aenetPostfix'
-        try:
-            self.list_address_attr = self.config.get('ATTR_MAP', 'smtp_address')
-        except:
-            self.list_address_attr = 'aenetPostfixEmailAccept'
-        try:
-            self.list_destination_attr = self.config.get('ATTR_MAP', \
-                                                    'smtp_destination')
-        except:
-            self.list_destination_attr = 'aenetPostfixEmailDeliver'
-        try:
-            self.list_enable_attr = self.config.get('ATTR_MAP', 'smtp_enable')
-        except:
-            self.list_enable_attr = 'aenetPostfixEnabled'
-        try:
-            self.list_pri_address_attr = self.config.get('ATTR_MAP', \
-                                                    'smtp_pri_address')
-        except:
-            self.list_pri_address_attr = 'aenetPostfixEmailAddress'
+        self.list_key = self.config.get('ATTR_MAP', 'user_key', 'uid')
+        self.list_class = self.config.get('ATTR_MAP', 'smtp_class', 'aenetPostfix')
+        self.list_address_attr = self.config.get('ATTR_MAP', 'smtp_address', 'aenetPostfixEmailAccept')
+        self.list_destination_attr = self.config.get('ATTR_MAP', \
+                                'smtp_destination', 'aenetPostfixEmailDeliver')
+        self.list_enable_attr = self.config.get('ATTR_MAP', 'smtp_enable', 'aenetPostfixEnabled')
+        self.list_pri_address_attr = self.config.get('ATTR_MAP', \
+                                'smtp_pri_address', 'aenetPostfixEmailAddress')
         self.retrieve_attr = [self.list_destination_attr]
         
     def _validate_input(self, list_address):

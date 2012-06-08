@@ -34,18 +34,9 @@ class SpokeSVN(SpokeLDAP):
         self.user_dn = self.user['data'][0].__getitem__(0)
         self.user_attrs = self.user['data'][0].__getitem__(1)
         self.user_classes = self.user_attrs['objectClass']
-        try:
-            self.svn_class = self.config.get('VCS', 'svn_class')
-        except:
-            self.svn_class = 'aenetSubversion'
-        try:
-            self.svn_repo_attr = self.config.get('VCS', 'svn_repo_attr')
-        except:
-            self.svn_repo_attr = 'aenetSubversionRepos'
-        try:
-            self.svn_enable_attr = self.config.get('VCS', 'svn_enable_attr')
-        except:
-            self.svn_enable_attr = 'aenetSubversionEnabled'
+        self.svn_class = self.config.get('VCS', 'svn_class', 'aenetSubversion')
+        self.svn_repo_attr = self.config.get('VCS', 'svn_repo_attr', 'aenetSubversionRepos')
+        self.svn_enable_attr = self.config.get('VCS', 'svn_enable_attr', 'aenetSubversionEnabled')
         self.retrieve_attr = [self.svn_repo_attr, self.svn_enable_attr]
         self.filter = self.svn_repo_attr + '=*'
         self.search_scope = 2 # ldap.SUB

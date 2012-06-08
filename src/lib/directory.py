@@ -54,15 +54,9 @@ class SpokeLDAPConn:
         self.log = logger.setup(__name__)
         self.search_scope = ldap.SCOPE_SUBTREE #(2)
         self.server = self.config.get('LDAP', 'server')
-        try:
-            self.port = self.config.get('LDAP', 'port')
-        except:
-            self.port = '389'
+        self.port = self.config.get('LDAP', 'port', '389')
         self.bind_dn = self.config.get('LDAP', 'binddn')
-        try:
-            self.start_tls = self.config.get('LDAP', 'start_tls')
-        except:
-            self.start_tls = False
+        self.start_tls = self.config.get('LDAP', 'start_tls', False)
         self.bind_password = self.config.get('LDAP', 'bindpw')
         try:
             self.LDAP = ldap.initialize('ldap://%s:%s' %

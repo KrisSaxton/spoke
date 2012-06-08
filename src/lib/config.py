@@ -43,18 +43,21 @@ class SpokeConfig(ConfigParser.ConfigParser):
             raise error.ConfigError('Config file %s is missing or empty' % 
                                     self.config_file)
             
-    def get(self, section, key):
+    def get(self, section, key, default=None):
         """Get method extended with with specific exceptions."""
         try:
             result = ConfigParser.ConfigParser.get(self, section, key)
         except ConfigParser.NoSectionError:
-            msg = '%s missing required [%s] section' % \
+            if default == None:
+                msg = '%s missing required [%s] section' % \
                                                     (self.config_file, section)
-            raise error.ConfigError(msg)
+                raise error.ConfigError(msg)
         except ConfigParser.NoOptionError:
-            msg = '%s missing required \'%s = <value>\' entry' % \
+            if default == None:
+                msg = '%s missing required \'%s = <value>\' entry' % \
                                                     (self.config_file, key)
-            raise error.ConfigError(msg)
+                raise error.ConfigError(msg)
+            result = default
         return result
 
     def items(self, section):

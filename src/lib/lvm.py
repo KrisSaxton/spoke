@@ -31,10 +31,7 @@ class SpokeLVM:
         self.config = config.setup()
         self.log = logger.setup(__name__)
         self.vg_name = common.is_shell_safe(vg_name)
-        try:
-            self.lv_units = self.config.get('LVM', 'lv_units')
-        except:
-            self.lv_units = 'g'
+        self.lv_units = self.config.get('LVM', 'lv_units', 'g')
     
     def create(self, lv_name, lv_size):
         """Create logical volume; return True"""

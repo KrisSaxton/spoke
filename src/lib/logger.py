@@ -44,22 +44,11 @@ class SpokeLogger:
                      'warning': logging.WARN,
                      'error': logging.ERROR,
                      'critical': logging.CRITICAL}
-        try:
-            self.log_filename = self.config.get('LOGGING', 'log_filename')
-        except:
-            self.log_filename = '/tmp/spoke.log'
-        try:
-            self.log_level = self.config.get('LOGGING', 'log_level')
-        except:
-            self.log_level = 'info'
-        try:
-            self.log_max_size = self.config.get('LOGGING', 'log_max_size')
-        except:
-            self.log_max_size = 1024*1024*5 # 5MBytes
-        try:
-            self.log_keep = self.config.get('LOGGING', 'log_keep')
-        except:
-            self.log_keep = 5 # Up to 5 rotations
+        self.log_filename = self.config.get('LOGGING', 'log_filename', '/tmp/spoke.log')
+        self.log_level = self.config.get('LOGGING', 'log_level', 'info')
+        max_size = 1024*1024*5 # 5MBytes
+        self.log_max_size = self.config.get('LOGGING', 'log_max_size', max_size)
+        self.log_keep = self.config.get('LOGGING', 'log_keep', 5)
         self.log_dir = os.path.split(self.log_filename)[0]
                 
     def setup(self, name, verbose=False, quiet=False):

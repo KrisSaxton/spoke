@@ -47,42 +47,15 @@ class SpokeCA():
         self.ca_name = common.is_shell_safe(ca_name)
         self.ca_base_dir = self.config.get('CA', 'ca_base_dir')
         self.ca_dir = os.path.join(self.ca_base_dir, self.ca_name) 
-        try:
-            self.ca_key_rdir = self.config.get('CA', 'ca_key_dir')
-        except:
-            self.ca_key_rdir = 'private'
-        try:
-            self.ca_cert_rdir = self.config.get('CA', 'ca_cert_dir')
-        except:
-            self.ca_cert_rdir = 'certs'
-        try:
-            self.ca_req_rdir = self.config.get('CA', 'ca_req_dir')
-        except:
-            self.ca_req_rdir = 'reqs'
-        try:
-            self.ca_cert_name = self.config.get('CA', 'ca_pub_cert')
-        except:
-            self.ca_cert_name = 'ca-cert.pem'
-        try:
-            self.ca_bundle_name = self.config.get('CA', 'ca_bundle')
-        except:
-            self.ca_bundle_name = 'ca-bundle.pem'
-        try:
-            self.ca_req_name = self.config.get('CA', 'ca_req')
-        except:
-            self.ca_req_name = 'ca-req.pem'
-        try:
-            self.ca_key_name = self.config.get('CA', 'ca_priv_key')
-        except:
-            self.ca_key_name = 'ca-key.pem'
-        try:
-            self.ca_index_name = self.config.get('CA', 'ca_index')
-        except:
-            self.ca_index_name = 'index'
-        try:
-            self.ca_serial_name = self.config.get('CA', 'ca_serial')
-        except:
-            self.ca_serial_name = 'serial'
+        self.ca_key_rdir = self.config.get('CA', 'ca_key_dir', 'private')
+        self.ca_cert_rdir = self.config.get('CA', 'ca_cert_dir', 'certs')
+        self.ca_req_rdir = self.config.get('CA', 'ca_req_dir', 'reqs')
+        self.ca_cert_name = self.config.get('CA', 'ca_pub_cert', 'ca-cert.pem')
+        self.ca_bundle_name = self.config.get('CA', 'ca_bundle', 'ca-bundle.pem')
+        self.ca_req_name = self.config.get('CA', 'ca_req', 'ca-req.pem')
+        self.ca_key_name = self.config.get('CA', 'ca_priv_key', 'ca-key.pem')
+        self.ca_index_name = self.config.get('CA', 'ca_index', 'index')
+        self.ca_serial_name = self.config.get('CA', 'ca_serial', 'serial')
         self.ca_cert_dir = os.path.join(self.ca_dir, self.ca_cert_rdir)
         self.ca_key_dir = os.path.join(self.ca_dir, self.ca_key_rdir)
         self.ca_req_dir = os.path.join(self.ca_dir, self.ca_req_rdir)
@@ -101,7 +74,6 @@ class SpokeCA():
                          self.ca_req_dir, self.ca_cert_dir ]
         self.req_files = [ self.ca_index_file, self.ca_serial_file,
                           self.ca_key_file, self.ca_cert_file ]
-        
         try:
             ca_cert = X509.load_cert(self.ca_cert_file, format=1)
             self.ca_cn = ca_cert.get_subject().CN
@@ -109,39 +81,17 @@ class SpokeCA():
         except:
             msg = 'CA cert file %s does not exist' % self.ca_cert_file
             self.log.debug(msg)      
-                
-        try:
-            self.ca_country = self.config.get('CA', 'ca_country')
-        except:
-            self.ca_country = 'GB'
+        self.ca_country = self.config.get('CA', 'ca_country', 'GB')
         try:
             self.ca_state = self.config.get('CA', 'ca_state')
         except:
             self.ca_state = None
-        try:
-            self.ca_locality = self.config.get('CA', 'ca_locality')
-        except:
-            self.ca_locality = 'London'
-        try:
-            self.ca_org = self.config.get('CA', 'ca_org')
-        except:
-            self.ca_org = 'Acme Ltd'
-        try:
-            self.ca_ou = self.config.get('CA', 'ca_ou')
-        except:
-            self.ca_ou = 'Certificate Services'
-        try:
-            self.ca_email = self.config.get('CA', 'ca_email')
-        except:
-            self.ca_email = 'ca@acme.co.uk'
-        try:
-            self.ca_def_duration = self.config.get('CA', 'ca_def_duration')
-        except:
-            self.ca_def_duration = 1095  
-        try:
-            self.ca_keypass = self.config.get('CA', 'ca_keypass')
-        except:
-            self.ca_keypass = ''
+        self.ca_locality = self.config.get('CA', 'ca_locality', 'London')
+        self.ca_org = self.config.get('CA', 'ca_org', 'Acme Ltd')
+        self.ca_ou = self.config.get('CA', 'ca_ou', 'Certificate Services')
+        self.ca_email = self.config.get('CA', 'ca_email', 'ca@acme.co.uk')
+        self.ca_def_duration = self.config.get('CA', 'ca_def_duration', 1095)
+        self.ca_keypass = self.config.get('CA', 'ca_keypass', '')
         # Try to get some more info from req/cert files if they are present
         self.ca_info = self._get_ca_info()
         try:

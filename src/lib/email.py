@@ -32,76 +32,33 @@ class SpokeEmail(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""   
         SpokeLDAP.__init__(self)     
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.setup(__name__)
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 0 #ldap.SCOPE_BASE
-        try:
-            self.org_attr = self.config.get('ATTR_MAP', 'org_attr')
-        except:
-            self.org_attr = 'o'
-        try:
-            self.org_def_children = self.config.get('ATTR_MAP', \
-                                                            'org_def_children')
-        except:
-            self.org_def_children = 'people,groups,config'
+        self.org_attr = self.config.get('ATTR_MAP', 'org_attr', 'o')
+        self.org_def_children = self.config.get('ATTR_MAP', \
+                                'org_def_children', 'people,groups,dns,hosts')
         self.org_children = self.org_def_children.split(',')
-        try:
-            self.user_login = self.config.get('ATTR_MAP', 'user_login')
-        except:
-            self.user_login = 'aenetAccountLoginName'
+        self.user_login = self.config.get('ATTR_MAP', 'user_login', 'aenetAccountLoginName')
         self.user_id = user_id
         self.user = self._get_user(org_name, self.user_id)
         self.user_dn = self.user['data'][0].__getitem__(0)
         self.user_attrs = self.user['data'][0].__getitem__(1)
         self.user_classes = self.user_attrs['objectClass']
-        try:
-            self.imap_class = self.config.get('ATTR_MAP', 'imap_class')
-        except:
-            self.imap_class = 'aenetCyrus'
-        try:
-            self.imap_enable = self.config.get('ATTR_MAP', 'imap_enable')
-        except:
-            self.imap_enable = 'aenetCyrusEnabled'
-        try:
-            self.imap_mailbox = self.config.get('ATTR_MAP', 'imap_mailbox')
-        except:
-            self.imap_mailbox = 'aenetCyrusMailboxName'
-        try:
-            self.imap_domain = self.config.get('ATTR_MAP', 'imap_domain')
-        except:
-            self.imap_domain = 'aenetCyrusMailboxDomain'
-        try:
-            self.imap_partition = self.config.get('ATTR_MAP', 'imap_partition')
-        except:
-            self.imap_partition = 'aenetCyrusMailboxPartition'
-        try:
-            self.imap_partition_def = self.config.get('ATTR_MAP', \
-                                                'imap_partition_def')
-        except:
-            self.imap_partition_def = 'partition-default'
-       
-        try:
-            self.smtp_class = self.config.get('ATTR_MAP', 'smtp_class')
-        except:
-            self.smtp_class = 'aenetPostfix'
-        try:
-            self.smtp_address = self.config.get('ATTR_MAP', 'smtp_address')
-        except:
-            self.smtp_address = 'aenetPostfixEmailAccept'
-        try:
-            self.smtp_destination = self.config.get('ATTR_MAP', \
-                                                    'smtp_destination')
-        except:
-            self.smtp_destination = 'aenetPostfixEmailDeliver'
-        try:
-            self.smtp_enable = self.config.get('ATTR_MAP', 'smtp_enable')
-        except:
-            self.smtp_enable = 'aenetPostfixEnabled'
-        try:
-            self.smtp_pri_address = self.config.get('ATTR_MAP', \
-                                                    'smtp_pri_address')
-        except:
-            self.smtp_pri_address = 'aenetPostfixEmailAddress'
+        self.imap_class = self.config.get('ATTR_MAP', 'imap_class', 'aenetCyrus')
+        self.imap_enable = self.config.get('ATTR_MAP', 'imap_enable', 'aenetCyrusEnabled')
+        self.imap_mailbox = self.config.get('ATTR_MAP', 'imap_mailbox', 'aenetCyrusMailboxName')
+        self.imap_domain = self.config.get('ATTR_MAP', 'imap_domain', 'aenetCyrusMailboxDomain')
+        self.imap_partition = self.config.get('ATTR_MAP', 'imap_partition', 'aenetCyrusMailboxPartition')
+        self.imap_partition_def = self.config.get('ATTR_MAP', \
+                                    'imap_partition_def', 'partition-default')
+        self.smtp_class = self.config.get('ATTR_MAP', 'smtp_class', 'aenetPostfix')
+        self.smtp_address = self.config.get('ATTR_MAP', 'smtp_address', 'aenetPostfixEmailAccept')
+        self.smtp_destination = self.config.get('ATTR_MAP', \
+                                'smtp_destination', 'aenetPostfixEmailDeliver')
+        self.smtp_enable = self.config.get('ATTR_MAP', 'smtp_enable', 'aenetPostfixEnabled')
+        self.smtp_pri_address = self.config.get('ATTR_MAP', \
+                                'smtp_pri_address', 'aenetPostfixEmailAddress')
     
     def _convert_email_to_mailbox_format(self, email):
         """Derive a Cyrus mailbox name from an email address."""
@@ -285,14 +242,8 @@ class SpokeEmailDomain(SpokeLDAP):
         self.org_dn = self.org['data'][0].__getitem__(0)
         self.org_attrs = self.org['data'][0].__getitem__(1)
         self.org_classes = self.org_attrs['objectClass']
-        try:
-            self.smtp_class = self.config.get('ATTR_MAP', 'smtp_class')
-        except:
-            self.smtp_class = 'aenetPostfix'
-        try:
-            self.smtp_domain = self.config.get('ATTR_MAP', 'smtp_domain')
-        except:
-            self.smtp_domain = 'aenetPostfixDomain'
+        self.smtp_class = self.config.get('ATTR_MAP', 'smtp_class', 'aenetPostfix')
+        self.smtp_domain = self.config.get('ATTR_MAP', 'smtp_domain', 'aenetPostfixDomain')
         self.retrieve_attr = [self.smtp_domain]
         
     def _get_org(self, org_name):
