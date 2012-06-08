@@ -1,0 +1,382 @@
+#--------------------------------------------------------------------------
+#
+# Aethernet Schema                           
+# 
+# Release 1.2                                                 Aethernet Ltd   
+# August 2011                                                
+#
+#--------------------------------------------------------------------------
+#
+# Copyright (c) 2007 Aethernet Ltd.
+#
+# Permission is granted to copy, distribute and/or modify this document
+# under the terms of the GNU Free Documentation License, Version 1.2
+# or any later version published by the Free Software Foundation;
+# with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+# A copy of the license is included in the section entitled "GNU
+# Free Documentation License".
+#
+#--------------------------------------------------------------------------
+#
+# 1.3.6.1.4.1.25593        Aethernet OID
+# 1.3.6.1.4.1.25593.1      Aethernet Organization  
+# 1.3.6.1.4.1.25593.2      ISP 
+# 1.3.6.1.4.1.25593.2.1    ISP - LDAP Elements
+# 1.3.6.1.4.1.25593.2.1.1  ISP - LDAP Elements - AttributeType
+# 1.3.6.1.4.1.25593.2.1.2  ISP - LDAP Elements - ObjectClasses
+# 1.3.6.1.4.1.25593.2.1.3  ISP - LDAP Elements - Syntax Definitions
+#
+#--------------------------------------------------------------------------
+#
+# Attribute Type Definitions
+#
+#--------------------------------------------------------------------------
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.1.1
+    NAME 'aenetAccountId'
+    DESC 'Account - Universal unique ID'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.1.2
+    NAME 'aenetAccountEnabled'
+    DESC 'Account - Enable account'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.1.3
+    NAME 'aenetAccountDisplayName'
+    DESC 'Account - Display name'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.1.4
+    NAME 'aenetAccountLoginName'
+    DESC 'Account - Login Name'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.1.5
+    NAME 'aenetAccountSuffix'
+    DESC 'Account - Default suffix'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.2.1
+    NAME 'aenetSubversionEnabled'
+    DESC 'Subversion - Enable subversion'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.2.2
+    NAME 'aenetSubversionRepos'
+    DESC 'Subversion - Allow access to named repository'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.3.1
+    NAME 'aenetTracEnabled'
+    DESC 'Trac - Enable trac'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.3.2
+    NAME 'aenetTracRepos'
+    DESC 'Trac - Allow access to named trac repository'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.4.1
+    NAME 'aenetFilesafeEnabled'
+    DESC 'Filesafe - Enable filesafe'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.5.1
+    NAME 'aenetMoinMoinEnabled'
+    DESC 'MoinMoin - Enable MoinMoin'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.5.2
+    NAME 'aenetMoinMoinWiki'
+    DESC 'MoinMoin - Allow access to named wiki'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.6.1
+    NAME 'aenetWebmasterEnabled'
+    DESC 'Webmaster - Enable Webmaster'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.6.2
+    NAME 'aenetWebmasterSite'
+    DESC 'Webmaster - Allow access to named site'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.7.1
+    NAME 'aenetPostmasterEnabled'
+    DESC 'Postmaster - Enable Postmaster'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.7.2
+    NAME 'aenetPostmasterDomain'
+    DESC 'Postmaster - Allow management of named domain'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.8.1
+    NAME 'aenetPostfixEnabled'
+    DESC 'Postfix - Enable Postfix'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.8.2
+    NAME 'aenetPostfixEmailAccept'
+    DESC 'Postfix - Accept mail for given email address'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.8.3
+    NAME 'aenetPostfixEmailDeliver'
+    DESC 'Postfix - Deliver mail to given email address'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.8.4
+    NAME 'aenetPostfixEmailAddress'
+    DESC 'Postfix - Primary email address'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.8.5
+    NAME 'aenetPostfixDomain'
+    DESC 'Postfix - Local delivery domain '
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.9.1
+    NAME 'aenetCyrusEnabled'
+    DESC 'Cyrus - Enable Cyrus'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.9.2
+    NAME 'aenetCyrusMailboxPartition'
+    DESC 'Cyrus - Mailbox partition name'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.9.3
+    NAME 'aenetCyrusMailboxDomain'
+    DESC 'Cyrus - Mailbox domain'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.9.4
+    NAME 'aenetCyrusMailboxName'
+    DESC 'Cyrus - Mailbox name'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+################################################################################
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.1
+    NAME 'aenetHostUUID'
+    DESC 'Host - Universal unique identifier'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.2
+    NAME 'aenetHostName'
+    DESC 'Host - Hostname'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.3
+    NAME 'aenetHostType'
+    DESC 'Host - Type (e.g. Physical or Virtual)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.4
+    NAME 'aenetHostFamily'
+    DESC 'Host - Family (e.g. xen, kvm or supermicro)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.5
+    NAME 'aenetHostCPU'
+    DESC 'Host - CPU unit(s)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.6
+    NAME 'aenetHostMem'
+    DESC 'Host - Memory'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.7
+    NAME 'aenetHostNetworkLayout'
+    DESC 'Host - Network Layout (determines no. of interfaces etc.)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.8
+    NAME 'aenetHostStorageLayout'
+    DESC 'Host - Storage Layout (determines no. of disks etc.)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.25593.2.1.1.10.9
+    NAME 'aenetHostExtraOpts'
+    DESC 'Host - Extra Opts (for arbitrary parmeters not covered by the above)'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+#--------------------------------------------------------------------------
+#
+# Object Class Definitions
+#
+#--------------------------------------------------------------------------
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.1
+    NAME 'aenetAccount'
+    DESC 'Aethernet - Account Object Class' 
+    AUXILIARY
+    MAY ( aenetAccountId $
+          aenetAccountEnabled $
+          aenetAccountDisplayName $
+          aenetAccountLoginName $
+          aenetAccountSuffix ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.2
+    NAME 'aenetSubversion'
+    DESC 'Aethernet - Subversion Object Class' 
+    AUXILIARY
+    MAY ( aenetSubversionEnabled $
+          aenetSubversionRepos ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.3
+    NAME 'aenetTrac'
+    DESC 'Aethernet - Trac Object Class' 
+    AUXILIARY
+    MAY ( aenetTracEnabled $
+          aenetTracRepos ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.4
+    NAME 'aenetFilesafe'
+    DESC 'Aethernet - Filesafe Object Class' 
+    AUXILIARY
+    MAY ( aenetFilesafeEnabled ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.5
+    NAME 'aenetMoinMoin'
+    DESC 'Aethernet - MoinMoin Object Class' 
+    AUXILIARY
+    MAY ( aenetMoinMoinEnabled $
+          aenetMoinMoinWiki ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.6
+    NAME 'aenetWebmaster'
+    DESC 'Aethernet - Webmaster Object Class' 
+    AUXILIARY
+    MAY ( aenetWebmasterEnabled $
+          aenetWebmasterSite ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.7
+    NAME 'aenetPostmaster'
+    DESC 'Aethernet - Postmaster Object Class' 
+    AUXILIARY
+    MAY ( aenetPostmasterEnabled $
+          aenetPostmasterDomain ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.8
+    NAME 'aenetPostfix'
+    DESC 'Aethernet - Postfix Object Class' 
+    AUXILIARY
+    MAY ( aenetPostfixEnabled $
+          aenetPostfixEmailAccept $
+          aenetPostfixEmailDeliver $
+          aenetPostfixEmailAddress $
+          aenetPostfixDomain ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.9
+    NAME 'aenetCyrus'
+    DESC 'Aethernet - Cyrus Object Class' 
+    AUXILIARY
+    MAY ( aenetCyrusEnabled $
+          aenetCyrusMailboxPartition $
+          aenetCyrusMailboxDomain $
+          aenetCyrusMailboxName ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.10
+    NAME 'aenetHost'
+    DESC 'Aethernet - Host Object Class' 
+    SUP top STRUCTURAL
+    MUST ( objectclass $ cn )
+    MAY ( aenetHostUUID $
+          aenetHostName $
+          aenetHostType $
+          aenetHostFamily $
+          aenetHostCPU $
+          aenetHostMem $
+          aenetHostNetworkLayout $
+          aenetHostStorageLayout $
+          aenetHostExtraOpts ) )
+
+objectclass ( 1.3.6.1.4.1.25593.2.1.2.11
+    NAME 'aenetNextUUID'
+    DESC 'Aethernet - Next Free UUID Object Class' 
+    AUXILIARY
+    MAY ( objectclass $ aenetHostUUID ) )
+#--------------------------------------------------------------------------
+

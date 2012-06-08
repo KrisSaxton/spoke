@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke IP API."""
+
+import sys
+from optparse import OptionParser, OptionGroup
+
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: %prog [options] [args]
+
+Manage IP addresses in a IP store
+
+Arguments:
+    NETWORK     network id, can be any ip address in subnet (e.g. 192.168.0.1)
+    MASK        network prefix in decimal format (e.g. 24)
+    IP          ip address (e.g. 192.168.0.1)
+    QTY         quantity of ip address to reserve (e.g. 3)
+
+Examples:
+    spoke-ip --help
+    spoke-ip -N -C 192.168.0.1 24
+    spoke-ip -N --search --dc dc01 192.168.0.1 24
+    spoke-ip -ND 192.168.0.1 24
+    spoke-ip -R 192.168.0.1 24 2
+    spoke-ip -X 192.168.0.1 192.168.0.25
+"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Subnet Options",
+        "Usage: spoke-ip -N [OPTIONS] NETWORK MASK")
+    group.add_option('-N', '--subnet', action='store_true',
+                          dest='subnet', help="perform action on an ip store")
+    group.add_option('-d', '--dc', action='store', dest='dc', 
+                     metavar='DC', default=None,
+                help="data centre name (used as prefix), [default: %default]")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Reserve IP Options", 
+        "Usage: spoke-ip -R [OPTIONS] NETWORK MASK QTY")
+    group.add_option('-R', '--reserve', action='store_true', dest='reserve',
+                    help="reserve QTY ip addresses from ip store")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Release IP Options", 
+        "Usage: spoke-ip -X [OPTIONS] NETWORK MASK IP")
+    group.add_option('-X', '--release', action='store_true', dest='release',
+                    help="return ip address IP to ip store")
+    parser.add_option_group(group)
+    (options, args) = parser.parse_args()
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+    
+    if options.release:
+        if len(args) != 3:
+            parser.error("incorrect number of arguments")
+        (network, mask, ip) = args
+    elif options.reserve:
+        if len(args) != 3:
+            parser.error("incorrect number of arguments")
+        (network, mask, qty) = args
+    elif options.subnet:
+        if options.search:
+            if len(args) == 2:
+                (network, mask) = args
+            else:
+                (network, mask) = (None, None)
+        elif len(args) != 2:
+            parser.error("Please specify NETWORK and MASK") 
+        else:
+            (network, mask) = args
+    
+    try:
+        from ip import SpokeSubnet
+        subnet = SpokeSubnet(ip=network, mask=mask, dc=options.dc)
+        if options.search:
+            result = subnet.get()
+        elif options.create:
+            result = subnet.create()
+        elif options.delete:
+            result = subnet.delete()
+        elif options.reserve:
+            result = subnet.modify(release=None, reserve=qty)
+        elif options.release:
+            result = subnet.modify(release=ip, reserve=None)
+        else:
+            parser.error("Unknown action: please specify one of -NRX")
+        log.info(result['msg'])
+        if (options.search and result['count'] > 0) or options.create:
+            log.info(result['data'])
+    except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

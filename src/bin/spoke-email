@@ -1,0 +1,228 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke Email API."""
+
+# core modules
+import sys
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: spoke-email [options] -AEOLM [args]
+
+Manage LDAP entries to control email routing behaviour
+
+Arguments:
+    ORG_NAME        organisation name (e.g. acme) 
+    USER_ID         user ID (e.g. johnsmith)
+    EMAIL_ADDR      email address (e.g. john.smith@acme.com)
+    EMAIL_DOMAIN    email domain (e.g. acme.com)
+    LIST_NAME       mailing list name (e.g. all@acme.com)
+    LIST_MEMBER     mailing list member (e.g. john.smith@acme.com)
+
+Examples:
+    spoke-email --help
+    spoke-email -v -AS acme johnsmith john.smith@acme.com
+    spoke-email -q -EC acme johnsmith john.smith@acme.com
+    spoke-email -O --create acme acme.com
+    spoke-email -LD acme all@acme.com
+    spoke-email --member -S acme all@acme.com john.smith@acme.com"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Email Account Options",
+        "Usage: spoke-email -A [OPTIONS] ORG_NAME USER_ID EMAIL_ADDR")
+    parser.add_option_group(group)
+    group.add_option('-A', '--account', action='store_true',
+                          dest='account', help="perform an action on an email account (object)")
+
+    group = OptionGroup(parser, "Email Address Options",
+        "Usage: spoke-email -E [OPTIONS] ORG_NAME USER_ID [EMAIL_ADDR]")
+    parser.add_option_group(group)
+    group.add_option('-E', '--address', action='store_true',
+                          dest='address', help="perform an action on an email address (object)")
+
+    group = OptionGroup(parser, "Email Domain Options",
+        "Usage: spoke-email -O [OPTIONS] ORG_NAME [EMAIL_DOMAIN]")
+    parser.add_option_group(group)
+    group.add_option('-O', '--domain', action='store_true',
+                          dest='domain', help="perform an action on an email domain (object)")
+
+    group = OptionGroup(parser, "Email Mailing List Options",
+        "Usage: spoke-email -L [OPTIONS] ORG_NAME [LIST_NAME] [LIST_MEMBER]")
+    parser.add_option_group(group)
+    group.add_option('-L', '--list', action='store_true',
+                          dest='list', help="perform an action on a mailing list (object)")
+    group.add_option('-e', '--enable', action='store_true',
+                          dest='enable', help="enable a mailing list (object)")
+    group.add_option('-d', '--disable', action='store_true',
+                          dest='disable', help="disable a mailing list (object)")
+
+    group = OptionGroup(parser, "Email Mailing List Members Options",
+        "Usage: spoke-email -M [OPTIONS] ORG_NAME LIST_NAME [LIST_MEMBER]")
+    parser.add_option_group(group)
+    group.add_option('-M', '--member', action='store_true',
+                          dest='member', help="perform an action on a mailing list member (object)")
+
+    (options, args) = parser.parse_args()
+
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    # Parse args
+    if not (options.create or options.search or options.delete):
+        parser.error("Please specify one of -CSD")
+    
+    if options.account or options.address:
+        if len(args) != 3:
+            parser.error("Please specify an organisation, user ID and email address")
+        (org_name, user_id, email_addr) = args
+    elif options.domain:
+        if len(args) == 0:
+            parser.error('Please specify at least ORG_NAME')
+        elif len(args) == 1:
+            org_name = args[0]
+            email_dom = None
+        elif len(args) == 2:
+            (org_name, email_dom) = args
+        else:
+            parser.error('Too many args')
+
+        if not email_dom and not options.search:
+            parser.error('only --search can be run without supplying EMAIL_DOM')
+
+    elif options.list:
+        if len(args) < 1:
+            parser.error('Please specify at least ORG_NAME')
+        elif len(args) == 1:
+            org_name = args[0]
+            list_address = None
+        elif len(args) == 2:
+            (org_name, list_address) = args
+            list_address = None
+        elif len(args) == 3:
+            (org_name, list_address, list_member) = args
+        else:
+            parser.error('Too many args')
+        if not list_address and not options.search:
+            parser.error('only --search can be run without supplying LIST_NAME')
+        if options.create and not list_member:
+            parser.error('you must supply a LIST_MEMBER with --create')
+
+    elif options.member:
+        if len(args) < 2:
+            parser.error('Please specify at least ORG_NAME and LIST_NAME')
+        elif len(args) == 2:
+            (org_name, list_address) = args
+            member_address = None
+        elif len(args) == 3:
+            (org_name, list_address, member_address) = args
+        else:
+            parser.error('Too many args')
+        if options.delete and not member_address:
+            parser.error('you must supply LIST_MEMBER with --delete')
+        if options.create and not member_address:
+            parser.error('you must supply LIST_MEMBER with --create')
+
+    # Perform action
+    try:
+        if options.account:
+            from email import SpokeEmailAccount
+            acc = SpokeEmailAccount(org_name, user_id)
+            if options.search:
+                result = acc.get(email_addr)
+            elif options.create:
+                result = acc.create(email_addr)
+            elif options.delete:
+                result = acc.delete(email_addr)
+        elif options.address:
+            from email import SpokeEmailAddress
+            addr = SpokeEmailAddress(org_name, user_id)
+            if options.search:
+                result = addr.get(email_addr)
+            elif options.create:
+                result = addr.create(email_addr)
+            elif options.delete:
+                result = addr.delete(email_addr)
+        elif options.domain:
+            from email import SpokeEmailDomain
+            domain = SpokeEmailDomain(org_name)
+            if options.search:
+                result = domain.get(email_dom)
+            elif options.create:
+                result = domain.create(email_dom)
+            elif options.delete:
+                result = domain.delete(email_dom)
+        elif options.list:
+            from list import SpokeMailingList
+            list = SpokeMailingList(org_name)
+            if options.search:
+                result = list.get(list_address=None)
+            elif options.create:
+                result = list.create(list_address, list_member)
+            elif options.enable:
+                result = list.modify(list_address, enable=True)
+            elif options.disable:
+                result = list.modify(list_address, enable=False)
+            elif options.delete:
+                result = list.delete(list_address)
+        elif options.member:
+            from list import SpokeMailingListMember
+            member = SpokeMailingListMember(org_name, list_address)
+            if options.search:
+                result = member.get(member_address=None)
+            elif options.create:
+                result = member.create(member_address)
+            elif options.delete:
+                result = member.delete(member_address)
+        else:
+            parser.error("Unknown action: please specify one of -AEOLM")
+        log.info(result['msg'])
+        if (options.search and result['count'] > 0) or options.create:
+            log.info(result['data'])
+    except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+        
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

@@ -1,0 +1,298 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke User, Mailbox, Password and SVN APIs."""
+
+# core modules
+import sys
+import traceback
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: spoke [options] -OUMPV [args]
+
+Manage LDAP and IMAP objects to control user accounts
+
+Arguments:
+    ORG_NAME        organisation (e.g. acme)
+    SUFFIX          primary dns suffix for this organisation (e.g. acme.com)
+    FIRST           user's first name (e.g. john)
+    LAST            user's last name (e.g. smith)
+    EMAIL_ADDR      user's primary email address (e.g. johnsmith@acme.com)
+    USER_ID         user's userid (e.g. johnsmith) 
+    PASSWORD        user's current password
+    NEW_PASSWORD    user's new password
+    REPO_NAME       version control system repository name (e.g. main)
+    ENABLE          enable or disable a user's repository access (True or False)
+
+Examples:
+    spoke --help
+    spoke -U -C acme johnsmith@acme.com john smith
+    spoke -C -P acme johnsmith ***
+    spoke -C -M -C johnsmith@acme.com
+    spoke -C -V acme johnsmith main
+    spoke -V -M acme johnsmith True
+"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-u', '--unique', action='store_true',
+                          dest='unique', help="search should return a single object")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-M', '--modify', action='store_true',
+                          dest='modify', help="modify an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Organisation Options",
+        "Usage: spoke -O [OPTIONS] ORG_NAME [SUFFIX]")
+    parser.add_option_group(group)
+    group.add_option('-O', '--org', action='store_true',
+                          dest='org', help="perform an action on an organisation (object)")
+
+    group = OptionGroup(parser, "User Account Options",
+        "Usage: spoke -U [OPTIONS] ORG_NAME [EMAIL_ADDRESS] [FIRST] [LAST]")
+    parser.add_option_group(group)
+    group.add_option('-U', '--user', action='store_true',
+                          dest='user', help="perform an action on a user account (object)")
+
+    group = OptionGroup(parser, "Mailbox Options",
+        "Usage: spoke -X [OPTIONS] EMAIL_ADDR")
+    parser.add_option_group(group)
+    group.add_option('-X', '--mbx', action='store_true',
+                          dest='mbx', help="perform an action on an IMAP mailbox (object)")
+
+    group = OptionGroup(parser, "User Password Options",
+        "Usage: spoke -P [OPTIONS] ORG_NAME USER_ID [PASSWORD] [NEW_PASSWORD]")
+    parser.add_option_group(group)
+    group.add_option('-P', '--password', action='store_true',
+                          dest='password', help="perform an action on a user password (object)")
+
+    group = OptionGroup(parser, "Version Control System Options",
+        "Usage: spoke -V [OPTIONS] ORG_NAME USER_ID [REPO_NAME]")
+    parser.add_option_group(group)
+    group.add_option('-V', '--vcs', action='store_true',
+                          dest='vcs', help="perform an action on a version control (object)")
+    group.add_option('-e', '--enable', action='store_true',
+                          dest='enable', help="enable user repository access")
+    group.add_option('-d', '--disable', action='store_false',
+                          dest='enable', help="disable user repository access")
+
+    (options, args) = parser.parse_args()
+
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    # Parse args
+    if not (options.search or options.create or options.modify or options.delete):
+        parser.error("Please specify one of: (-C, --create), (-M, --modify), (-S, --search) or (-D, --delete)")
+    if options.mbx:
+        if len(args) != 1:
+            parser.error("Please specify an EMAIL_ADDR")
+        mailbox_name = args[0]
+    elif len(args) < 1:
+        parser.error("Please specify at least an ORG_NAME")
+    elif options.org:
+        if len(args) == 1:
+            org_name = args[0]
+            suffix = None
+        elif len(args) == 2:
+            (org_name, suffix) = args
+        elif len(args) > 2:
+            parser.error("Too many args")
+    elif options.user:
+        if options.create:
+            if len(args) < 3:
+                parser.error("Please specify at least ORG_NAME, EMAIL_ADDR and FIRST")
+            elif len(args) == 3:
+                (org_name, email_addr, first) = args
+                last = None
+            elif len(args) == 4:
+                (org_name, email_addr, first, last) = args
+        elif options.search:
+            if len(args) == 1:
+                org_name = args[0]
+                first = None
+                last = None
+            elif len(args) == 2:
+                (org_name, first) = args
+                last = None
+            elif len(args) == 3:
+                (org_name, first, last) = args
+            elif len(args) > 3:
+                parser.error("Too many args")
+        elif options.delete:
+            if len(args) == 2:
+                (org_name, first) = args
+                last = None
+            elif len(args) == 3:
+                (org_name, first, last) = args
+            elif len(args) > 3:
+                parser.error("Too many args")
+        elif len(args) > 4:
+            parser.error("Too many args")
+    elif options.password:
+        if options.create or options.search:
+            if len(args) != 3:
+                parser.error("Please specify ORG_NAME, USER_ID and PASSWORD")
+            (org_name, user_id, password) = args
+        elif options.modify:
+            if len(args) != 4:
+                parser.error("Please specify ORG_NAME, USER_ID, PASSWORD and NEW_PASSWORD")
+            (org_name, user_id, password, new_password) = args
+        if options.delete:
+            if len(args) != 2:
+                parser.error("Please specify ORG_NAME and USER_ID")
+            (org_name, user_id) = args
+    elif options.vcs:
+        if options.create or options.delete:
+            if len(args) != 3:
+                parser.error("Please specify ORG_NAME, USER_ID and REPO_NAME")
+            (org_name, user_id, repo_name) = args
+        elif options.modify:
+            if len(args) != 2:
+                parser.error("Please specify ORG_NAME and USER_ID")
+            (org_name, user_id) = args
+        elif options.search:
+            if len(args) < 2:
+                parser.error("Please specify at least ORG_NAME and USER_ID")
+            elif len(args) == 2:
+                (org_name, user_id) = args
+                repo_name = None
+            elif len(args) == 3:
+                (org_name, user_id, repo_name) = args
+            elif len(args) > 3:
+                parser.error("Too many args")
+
+    # Perform action
+    if options.org:
+        try:
+            from org import SpokeOrg
+            org = SpokeOrg()
+            if options.search:
+                result = org.get(org_name)
+            elif options.create:
+                result = org.create(org_name, suffix=suffix) # Org Children options!
+            elif options.modify:
+                result = org.modify(org_name, suffix=suffix)
+            elif options.delete:
+                result = org.delete(org_name)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(traceback)
+            raise e
+    elif options.user:
+        try:
+            from user import SpokeUser
+            user = SpokeUser(org_name)
+            if options.search:
+                result = user.get(first, last, options.unique)
+            elif options.create:
+                result = user.create(email_addr, first, last)
+            elif options.delete:
+                result = user.delete(first, last)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(traceback)
+    elif options.mbx:
+        try:
+            from mbx import SpokeMbx
+            mailbox = SpokeMbx()
+            if options.search:
+                result = mailbox.get(mailbox_name, options.unique)
+            elif options.create:
+                result = mailbox.create(mailbox_name)
+            elif options.delete:
+                result = mailbox.delete(mailbox_name)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(traceback)
+    
+    elif options.password:
+        try:
+            from passwd import SpokePwd
+            pwd = SpokePwd(org_name, user_id)
+            if options.search:
+                result = pwd.get(password)
+            elif options.create:
+                result = pwd.create(password)
+            elif options.modify:
+                result = pwd.modify(password, new_password)
+            elif options.delete:
+                result = pwd.delete()
+            log.info(result['msg'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(traceback)
+    elif options.vcs:
+        try:
+            from vcs import SpokeSVN
+            svn = SpokeSVN(org_name, user_id)
+            if options.search:
+                result = svn.get(repo=None)
+            elif options.create:
+                result = svn.create(repo=repo_name)
+            elif options.delete:
+                result = svn.delete(repo=repo_name)
+            elif options.modify:
+                result = svn.modify(enable=options.enable)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create or options.modify:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(traceback)
+    else:
+        parser.error("Unknown action; please specify one of: -OUMPV")
+
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e
+        print traceback.format_exc()

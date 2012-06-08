@@ -1,0 +1,279 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke DHCP API."""
+
+# core modules
+import sys
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: spoke-dhcp [options] -REVNGHA [args]
+
+Manage LDAP entries to control DHCP behaviour
+
+Arguments:
+    DHCP_SERVER     DHCP server hostname (e.g. dhcp01) 
+    SUBNET          DHCP server subnet (e.g. 172.16.0.1)
+    GROUP_NAME      DHCP group name (e.g. group01)
+    HOST_NAME       DHCP hostname (e.g. host01.acme.local)
+    ATTR_TYPE       DHCP attribute type (e.g. dhcpHWAddress)
+    ATTR_VALUE      DHCP attribute value (e.g. ethernet "02:00:00:38:00:00")
+
+Examples:
+    spoke-dhcp --help
+    spoke-dhcp -R -C dhcp01 group01 host01.acme.local 02:00:00:38:00:00 172.16.0.1
+    spoke-dhcp -v -c /etc/spoke.conf --server -S dhcp01
+    spoke-dhcp --service -D dhcp01
+    spoke-dhcp --subnet -C dhcp01 172.16.0.0 16 --start-ip 172.16.0.1 --stop-ip 172.16.0.10
+"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "DHCP Reservation Options",
+        "Usage: spoke-dhcp -R [OPTIONS] DHCP_SERVER DHCP_GROUP HOSTNAME [MAC] [IP]")
+    parser.add_option_group(group)
+    group.add_option('-R', '--reservation', action='store_true',
+                          dest='reservation', help="perform an action on a DHCP reservation (object)")
+
+    group = OptionGroup(parser, "DHCP Server Options",
+        "Usage: spoke-dhcp -E [OPTIONS] DHCP_SERVER")
+    parser.add_option_group(group)
+    group.add_option('-E', '--server', action='store_true',
+                          dest='server', help="perform an action on a DHCP server (object)")
+
+    group = OptionGroup(parser, "DHCP Service Options",
+        "Usage: spoke-dhcp -V [OPTIONS] DHCP_SERVER")
+    parser.add_option_group(group)
+    group.add_option('-V', '--service', action='store_true',
+                          dest='service', help="perform an action on a DHCP Service (object)")
+
+    group = OptionGroup(parser, "DHCP Subnet Options",
+        "Usage: spoke-dhcp -N [OPTIONS] DHCP_SERVER SUBNET [MASK]")
+    parser.add_option_group(group)
+    group.add_option('-N', '--subnet', action='store_true',
+                          dest='subnet', help="perform an action on a DHCP Subnet (object)")
+    group.add_option('', '--start-ip', action='store',
+                          dest='start_ip', help="Start IP [default: None]")
+    group.add_option('', '--stop-ip', action='store',
+                          dest='stop_ip', help="Stop IP [default: None]")
+
+    group = OptionGroup(parser, "DHCP Group Options",
+        "Usage: spoke-dhcp -G [OPTIONS] DHCP_SERVER GROUP_NAME")
+    parser.add_option_group(group)
+    group.add_option('-G', '--group', action='store_true',
+                          dest='group', help="perform an action on a DHCP Group (object)")
+
+    group = OptionGroup(parser, "DHCP Host Options",
+        "Usage: spoke-dhcp -H [OPTIONS] DHCP_SERVER GROUP_NAME HOST_NAME")
+    parser.add_option_group(group)
+    group.add_option('-H', '--host', action='store_true',
+                          dest='host', help="perform an action on a DHCP Host (object)")
+
+    group = OptionGroup(parser, "DHCP Attribute Options",
+        "Usage: spoke-dhcp -A [OPTIONS] DHCP_SERVER ATTR_TYPE [ATTR_VALUE]")
+    parser.add_option_group(group)
+    group.add_option('-A', '--attribute', action='store_true',
+                          dest='attribute', help="perform an action on a DHCP Attribute record (object)")
+    group.add_option('', '--attr-group', action='store',
+                          dest='attrgroup', help="DHCP Group [default: None]", default=None)
+    group.add_option('', '--attr-host', action='store',
+                          dest='attrhost', help="DHCP Host [default: None]", default=None)
+
+    (options, args) = parser.parse_args()
+
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    # Parse args
+    if len(args) < 1:
+        parser.error("Please specify at least a DHCP_SERVER")
+    if not (options.create or options.search or options.delete):
+        parser.error("Please specify one of -CSMD")
+
+    if options.reservation:
+        if options.create:
+            if len(args) != 5:
+                parser.error("Please specify DHCP_SERVER DHCP_GROUP HOSTNAME MAC and IP")
+            (dhcp_server, dhcp_group, host_name, mac, ip) = args
+        elif len(args) != 3:
+            parser.error("Please specify DHCP_SERVER DHCP_GROUP and HOSTNAME")
+        else:
+            (dhcp_server, dhcp_group, host_name) = args
+            mac = None
+            ip = None
+    elif options.server or options.service:
+        if options.create or options.delete:
+            if len(args) != 1:
+                parser.error("Please specify DHCP_SERVER ")
+            dhcp_server = args[0]
+    elif options.subnet:
+        if options.create:
+            if len(args) != 3:
+                parser.error("Please specify DHCP_SERVER SUBNET and MASK")
+            (dhcp_server, subnet, mask) = args
+        elif len(args) != 2:
+            parser.error("Please specify DHCP_SERVER and SUBNET")
+        (dhcp_server, subnet) = args
+    elif options.group:
+        if len(args) != 2:
+            parser.error("Please specify DHCP_SERVER and GROUP_NAME")
+        (dhcp_server, group_name) = args
+    elif options.host:
+        if len(args) < 2:
+            parser.error("Please specify at least DHCP_SERVER and HOST_NAME")
+        elif len(args) == 2:
+            (dhcp_server, group_name) = args
+        elif len(args) == 3:
+            (dhcp_server, group_name, host_name) = args
+    elif options.attribute:
+        if options.create or options.delete:
+            if len(args) != 3:
+                parser.error("Please specify DHCP_SERVER ATTR_TYPE and ATTR_VALUE, use --attr-[group|host] to specify group|host attributes")
+            (dhcp_server, attr_type, attr_value) = args
+        elif len(args) < 2:
+            parser.error("Please specify at least DHCP_SERVER and ATTR_TYPE")
+        elif len(args) == 2:
+            (dhcp_server, attr_type) = args
+            attr_value = None
+        elif len(args) == 3:
+            (dhcp_server, attr_type, attr_value) = args
+        elif len(args) > 3:
+            parser.error("Too many args")
+
+    # Perform action
+    try:
+        if options.reservation:
+            from dhcp import SpokeDHCPHost
+            from dhcp import SpokeDHCPAttr
+            host = SpokeDHCPHost(dhcp_server, dhcp_group)
+            if options.search:
+                result = host.get(host_name)
+            elif options.create:
+                try:
+                    host.create(host_name)
+                except error.AlreadyExists:
+                    pass
+                attr = SpokeDHCPAttr(dhcp_server, dhcp_group, host_name)
+                attr.create("dhcpHWAddress", "ethernet %s" % mac )
+                attr.create("dhcpStatements", "fixed-address %s" %ip )
+                attr.create("dhcpOption", "host-name \"%s\"" %host_name )
+                result = host.get(host_name)
+            elif options.delete:
+                result = host.delete(host_name)  
+        elif options.server:
+            from dhcp import SpokeDHCPServer
+            server = SpokeDHCPServer()
+            if options.search:
+                result = server.get(dhcp_server)
+            elif options.create:
+                result = server.create(dhcp_server)
+            elif options.delete:
+                result = server.delete(dhcp_server)
+            else:
+                parser.error('Unknown option; please specify one of: -CSMD')  
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        elif options.service:
+            from dhcp import SpokeDHCPService
+            service = SpokeDHCPService()
+            if options.search:
+                result = service.get(dhcp_server)
+            elif options.create:
+                result = service.create(dhcp_server)
+            elif options.delete:
+                result = service.delete(dhcp_server)
+            else:
+                parser.error('Unknown option; please specify one of: -CSMD')  
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        elif options.subnet:
+            from dhcp import SpokeDHCPSubnet
+            sub = SpokeDHCPSubnet(dhcp_server)
+            if options.search:
+                result = sub.get(subnet)
+            elif options.create:       
+                result = sub.create(subnet, mask, start_ip, stop_ip)
+            elif options.delete:
+                result = sub.delete(subnet)
+        elif options.group:
+            from dhcp import SpokeDHCPGroup
+            group = SpokeDHCPGroup(dhcp_server)
+            if options.search:
+                result = group.get(group_name)
+            elif options.create:
+                result = group.create(group_name)
+            elif options.delete:
+                result = group.delete(group_name)
+        elif options.host:
+            from dhcp import SpokeDHCPHost
+            host = SpokeDHCPHost(dhcp_server, group_name)
+            if options.search:
+                result = host.get(host_name)
+            elif options.create:
+                result = host.create(host_name)
+            elif options.delete:
+                result = host.delete(host_name) 
+        elif options.attribute:
+            from dhcp import SpokeDHCPAttr
+            attribute = SpokeDHCPAttr(dhcp_server, group=options.attrgroup, 
+                                      host=options.attrhost)
+            if options.search:
+                result = attribute.get(attr_type)
+            elif options.create:
+                result = attribute.create(attr_type, attr_value)
+            elif options.delete:
+                result = attribute.delete(attr_type, attr_value)
+        else:
+            parser.error("Unknown action: please specify one of -REVNGHA")
+        log.info(result['msg'])
+        if (options.search and result['count'] > 0) or options.create:
+            log.info(result['data'])
+    except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

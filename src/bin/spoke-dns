@@ -1,0 +1,283 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke DNS API."""
+
+import sys
+
+from optparse import OptionParser, OptionGroup
+
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: spoke-dns [options] -ZONMAETP [args]
+
+Manage LDAP entries to control DNS behaviour
+
+Arguments:
+    ORG             organisation name (e.g. acme) 
+    ZONE            zone name (e.g. )
+    NS              name server (e.g. ns01.acme.com)
+    EMAIL           administrator email (e.g. dns@acme.com)
+    HOSTNAME        fully qualified hostname (e.g. www.acme.com)
+    PRIORITY        mail route priority (e.g. 10)
+    RDN             relative domain name (e.g. www)
+    IP              ip address (e.g. 192.168.0.1)
+    TEXT            text record content
+
+Examples:
+    spoke-dns --help
+    spoke-dns -v -ZC acme acme.com -s 100
+    spoke-dns -q -OC acme acme.com ns01.acme.com dns@acme.com
+    spoke-dns -N --create acme acme.com ns01.acme.com
+    spoke-dns -M -S acme acme.com ns01.acme.com 10
+    spoke-dns -A -D acme acme.com www 192.168.1.1
+    spoke-dns -E -S acme acme.com www mobile.acme.com
+    spoke-dns -T -C acme acme.com "some text"
+    spoke-dns -P -C acme acme.com 1.1.168.192.in-addr.arpa www"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-l', '--ttl', action='store',
+                          dest='ttl', help="time to live <secs> [default: 86400]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "DNS Zone Options",
+        "Usage: spoke-dns -Z [OPTIONS] ORG ZONE")
+    parser.add_option_group(group)
+    group.add_option('-Z', '--zone', action='store_true',
+                          dest='zone', help="perform an action on a DNS zone (object)")
+    group.add_option('-s', '--serial', action='store', default=None,
+                          dest='serial', help="zone starting serial number [default: 1]")
+    group.add_option('-r', '--slave-refresh', action='store', default=None,
+                          dest='refresh', help="slave refresh interval <secs> [default: 3600]")
+    group.add_option('-t', '--slave-retry', action='store', default=None,
+                          dest='retry', help="slave retry interval <secs> [default: 600]")
+    group.add_option('-e', '--slave-expire', action='store', default=None,
+                          dest='expire', help="slave expiry time <secs> [default: 86400]")
+    group.add_option('-m', '--min-ttl', action='store', default=None,
+                          dest='minttl', help="minimum record time to live <secs> [default: 3600]")
+
+    group = OptionGroup(parser, "SOA Record Options",
+        "Usage: spoke-dns -O [OPTIONS] ORG ZONE NS EMAIL")
+    parser.add_option_group(group)
+    group.add_option('-O', '--soa', action='store_true',
+                          dest='soa', help="perform an action on an SOA record (object)")
+
+    group = OptionGroup(parser, "NS Record Options",
+        "Usage: spoke-dns -N [OPTIONS] ORG ZONE NS")
+    parser.add_option_group(group)
+    group.add_option('-N', '--ns', action='store_true',
+                          dest='ns', help="perform an action on an NS record object (object)")
+
+    group = OptionGroup(parser, "MX Record Options",
+        "Usage: spoke-dns -M [OPTIONS] ORG ZONE HOSTNAME PRIORITY")
+    parser.add_option_group(group)
+    group.add_option('-M', '--mx', action='store_true',
+                          dest='mx', help="perform an action on an MX record (object)")
+
+    group = OptionGroup(parser, "A Record Options",
+        "Usage: spoke-dns -A [OPTIONS] ORG ZONE RDN IP [TTL]")
+    parser.add_option_group(group)
+    group.add_option('-A', '--a', action='store_true',
+                          dest='a', help="perform an action on an A record (object)")
+
+    group = OptionGroup(parser, "CNAME Record Options",
+        "Usage: spoke-dns -E [OPTIONS] ORG ZONE RDN HOSTNAME [TTL]")
+    parser.add_option_group(group)
+    group.add_option('-E', '--cname', action='store_true',
+                          dest='cname', help="perform an action on a CNAME record (object)")
+
+    group = OptionGroup(parser, "TXT Record Options",
+        "Usage: spoke-dns -T [OPTIONS] ORG ZONE TXT")
+    parser.add_option_group(group)
+    group.add_option('-T', '--txt', action='store_true',
+                          dest='txt', help="perform an action on a TXT record (object)")
+
+    group = OptionGroup(parser, "PTR Record Options",
+        "Usage: spoke-dns -P [OPTIONS] ORG ZONE IP RDN")
+    parser.add_option_group(group)
+    group.add_option('-P', '--ptr', action='store_true',
+                          dest='ptr', help="perform an action on a PTR record (object)")
+    (options, args) = parser.parse_args()
+
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    # Parse args
+    if len(args) < 2:
+        parser.error("Please specify at least an ORG and ZONE")
+    if not (options.create or options.search or options.delete):
+        parser.error("Please specify one of -CSMD")
+
+    if options.zone:
+        (org, zone) = args
+    elif options.soa:
+        if options.create:
+            if len(args) != 4:
+                parser.error("Please specify ORG, ZONE, NS and EMAIL ")
+            (org, zone, ns, email) = args
+        elif len(args) != 2:
+            parser.error("Please specify an ORG and ZONE")
+        else:
+            (org, zone) = args
+    elif options.ns:
+        if len(args) != 3:
+            parser.error("Please specify ORG, ZONE and NS")
+        (org, zone, ns) = args
+    elif options.mx:
+        if len(args) != 4:
+            parser.error("Please specify ORG, ZONE, HOSTNAME and PRIORITY")
+        (org, zone, hostname, priority) = args
+    elif options.a:
+        if len(args) != 4:
+            parser.error("Please specify ORG, ZONE, RDN and IP")
+        (org, zone, rdn, ip) = args
+    elif options.cname:
+        if len(args) != 4:
+            parser.error("Please specify ORG, ZONE, RDN and HOSTNAME")
+        (org, zone, rdn, hostname) = args
+    elif options.txt:
+        if len(args) != 3:
+            parser.error("Please specify ORG, ZONE and TXT")
+        (org, zone, text) = args
+    elif options.ptr:
+        if len(args) != 4:
+            parser.error("Please specify ORG, ZONE, IP and RDN")
+        (org, zone, ip, rdn) = args
+
+    # Perform action
+    try:
+        if options.zone:
+            from dns import SpokeDNSZone
+            zone = SpokeDNSZone(org, zone)
+            if options.search:
+                result = zone.get()
+            elif options.create:
+                result = zone.create()
+            elif options.delete:
+                result = zone.delete()
+        elif options.soa:
+            type = 'SOA'
+            from dns import SpokeDNSSOA
+            soa = SpokeDNSSOA(org, zone)
+            if options.search:
+                result = soa.get(type)
+            elif options.create:
+                result = soa.create(ns, email, serial=options.serial, 
+                                    slave_refresh=options.refresh, 
+                                    slave_retry=options.retry, 
+                                    slave_expire=options.expire, 
+                                    min_ttl=options.minttl)
+            elif options.delete:
+                result = soa.delete(type)
+        elif options.ns:
+            type = 'NS'
+            from dns import SpokeDNSNS
+            nameserver = SpokeDNSNS(org, zone)
+            if options.search:
+                result = nameserver.get(type, ns)
+            elif options.create:       
+                result = nameserver.create(type, ns)
+            elif options.delete:
+                result = nameserver.delete(type, ns)
+        elif options.mx:
+            type = 'MX'
+            entry = priority + ' ' + hostname
+            from dns import SpokeDNSMX
+            mx = SpokeDNSMX(org, zone)
+            if options.search:
+                result = mx.get(type, entry)
+            elif options.create:
+                result = mx.create(type, entry)
+            elif options.delete:
+                result = mx.delete(type, entry)
+        elif options.a:
+            type = 'A'
+            entry = [rdn,ip]
+            from dns import SpokeDNSA
+            a = SpokeDNSA(org, zone)
+            if options.search:
+                result = a.get(type, entry)
+            elif options.create:
+                result = a.create(type, entry, ttl=options.ttl)
+            elif options.delete:
+                result = a.delete(type, entry, ttl=options.ttl)
+        elif options.cname:
+            type = 'CNAME'
+            entry = [rdn, hostname]
+            from dns import SpokeDNSCNAME
+            cname = SpokeDNSCNAME(org, zone)
+            if options.search:
+                result = cname.get(type, entry)
+            elif options.create:
+                result = cname.create(type, entry, ttl=options.ttl)
+            elif options.delete:
+                result = cname.delete(type, rdn)
+        elif options.txt:
+            type = 'TXT'
+            from dns import SpokeDNSTXT
+            txt = SpokeDNSTXT(org, zone)
+            if options.search:
+                result = txt.get(type, text)
+            elif options.create:
+                result = txt.create(type, text)
+            elif options.delete:
+                result = txt.delete(type, text)
+        elif options.ptr:
+            type = 'PTR'
+            entry = [ip, rdn]
+            from dns import SpokeDNSPTR
+            ptr = SpokeDNSPTR(org, zone)
+            if options.search:
+                result = ptr.get(type, entry)
+            elif options.create:
+                result = ptr.create(type, entry)
+            elif options.delete:
+                result = ptr.delete(type, entry)
+        else:
+            parser.error("Unknown action: please specify one of -AEOLM")
+        log.info(result['msg'])
+        if (options.search and result['count'] > 0) or options.create:
+            log.info(result['data'])
+    except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+        
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

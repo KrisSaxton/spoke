@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke Host API."""
+
+# core modules
+import sys
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: %prog [options] [args]
+
+Manage LDAP virtual machine definitions
+
+Arguments:
+    ORG             organisation (e.g. acme)
+    HOSTNAME        hostname of virtual machine (e.g. vm-01)
+    UUID            UUID of virtual machine (e.g. 01)
+    MEM             memory of virtual machine in MB (e.g. 512)
+    CPU             cpu units of virtual machine (e.g. 2)
+    NETWORK_LAYOUT  a group of interfaces defined in spoke.conf (e.g. with_internet)
+    STORAGE_LAYOUT  a group of disks defined in spoke.conf (e.g. with_san)
+    TYPE            type of hypervisor (xen|kvm|vmware)
+    FAMILY          type of virtualisation (phys|full|para)
+    QTY             quantity of UUIDs to reserve (e.g. 1)
+
+Examples:
+    spoke-host --help
+    spoke-host -H -S acme test-01
+    spoke-host -v -H --create acme test-01 01 256 1 basic with_internet para xen
+    spoee-host --host -D acme test-01
+    spoke-host -U --reserve 2
+"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Host Options", "Usage: spoke-host -H [options] ORG HOSTNAME UUID [MEM] [CPU] [FAMILY] [TYPE] [STORAGE_LAYOUT] [NETWORK_LAYOUT]")
+    group.add_option('-H', '--host', action='store_true', dest='host',
+                     help="perform a host action")
+    group.add_option('-t', '--template', action='store', dest='template', 
+                     metavar='HOSTNAME', help="create host based on HOSTNAME")
+    parser.add_option_group(group)
+
+    
+    group = OptionGroup(parser, "UUID Options", "Usage: spoke-host -U [options] QTY")
+    group.add_option('-U', '--uuid', action='store_true', dest='uuid',
+                     help="perform a uuid action")
+    group.add_option('-R', '--reserve', action='store_true', dest='reserve', 
+                     help="reserve QTY uuids")
+    parser.add_option_group(group)
+    
+    (options, args) = parser.parse_args()
+    
+    conf = config.setup(options.config_file)
+    
+        
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+    
+    if not (options.create or options.search or options.delete):
+        parser.error("Please specify one of -CSMD")
+    
+    # Host commands
+    if options.host:
+        if len(args) < 1:
+                parser.error('Please specify at least ORG')
+        
+        if options.search:
+            if len(args) == 1:
+                host_name = None
+                org_name = args[0]
+            elif len(args) == 2:
+                (org_name, host_name) = args
+            else:
+                parser.error('Too many args')
+        elif options.delete:
+            if len(args) != 2:
+                parser.error("Delete requires exactly 2 args: ORG and HOSTNAME")
+            (org_name, host_name) = args            
+        elif options.create:
+            if options.template:
+                print 'Feature not implemented; while True: punch(kris)'
+            if len(args) != 9:
+                parser.error("Incorrect args; format should be: ORG HOSTNAME UUID MEM CPU FAMILY TYPE STORAGE_LAYOUT NETWORK_LAYOUT ")
+            (org_name, host_name, host_uuid, host_mem, host_cpu, host_family,
+             host_type, host_storage_layout, host_network_layout) = args
+        else:
+            parser.error('Unknown option; please specify one of: -SCMD')
+     
+        try:
+            from host import SpokeHost
+            host = SpokeHost(org_name)     
+            if options.search:
+                result = host.get(host_name)
+            elif options.create:
+                result = host.create(host_name, host_uuid, host_mem, host_cpu, 
+                                     host_family, host_type, 
+                                     host_storage_layout, host_network_layout)
+            elif options.delete:
+                result = host.delete(host_name)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+            
+    # UUID commands
+    elif options.uuid:
+        if options.create:
+            if len(args) != 1:
+                parser.error("Please provide a starting UUID")
+            start_uuid = args[0]
+        elif options.reserve:
+            if len(args) != 1:
+                parser.error("missing QTY")
+            qty = args[0]
+        elif options.search or options.delete:
+            if len(args) !=0:
+                log.warn("Delete and Search take no arguments..ignoring")
+        else:
+            parser.error('Unknown option; please specify one of: -SCMD')
+         
+        try:       
+            from host import SpokeHostUUID
+            uuid = SpokeHostUUID()
+            
+            if options.search:
+                result = uuid.get()
+            elif options.create:
+                result = uuid.create(uuid_start=start_uuid)
+            elif options.delete:
+                result = uuid.delete()
+            elif options.reserve:
+                result = uuid.modify(increment=qty)
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+    else:
+        parser.error('Unknown action; please specify one of: -HU')
+        
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

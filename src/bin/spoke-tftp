@@ -1,0 +1,142 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke TFTP API."""
+
+# core modules
+import sys
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: %prog [options] -T [args]
+
+Manage TFTP server links to control PXE boot behaviour
+
+Arguments:        
+    MAC         MAC address (e.g. 11:22:33:44:55:66)
+    FILENAME    filename of an existing pxe config
+                file in the pxelinux.cfg directory
+
+Examples:
+    spoke-tftp --help
+    spoke-tftp -v -S
+    spoke-tftp -q -S 11:22:33:44:55:66
+    spoke-tftp -c /etc/spoke/spoke.conf -S xendomu.conf
+    spoke-tftp -C 11:22:33:44:55:66 xendomu.conf
+    spoke-tftp --delete 11:22:33:44:55:66"""
+                
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for an object")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create an object")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete an object")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "TFTP Options",
+        "Usage: spoke-tftp -T [OPTIONS] [MAC] [FILENAME]")
+    parser.add_option_group(group)
+    group.add_option('-T', '--tftp', action='store_true',
+                          dest='tftp', help="perform an action on a tftp object")
+        
+    (options, args) = parser.parse_args()
+
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    if options.search:
+        if len(args) == 0:
+            mac = None
+            filename = None
+        elif len(args) >= 2:
+            parser.error("Please specify nothing, mac or target (not mac and target).")
+            (mac, filename) = args
+        # Is this is a mac or a filename?
+        else:
+            thing = args[0]
+            try:
+                mac = common.validate_mac(thing)
+                filename = None
+            except error.InputError:
+                filename = thing
+                mac = None
+    if options.create:
+        if len(args) != 2:
+            parser.error("Please specify a mac address and a tftp config file")
+        (mac, filename) = args
+    elif options.delete:
+        if len(args) != 1:
+            parser.error("Please specify a mac address")
+        mac = args[0]
+    
+    if options.tftp:
+        try:
+            tftproot = conf.get("TFTP", "tftp_root")
+            from tftp import SpokeTFTP
+            tftp = SpokeTFTP(tftproot)  
+            if options.search:
+                if filename is None and mac is not None:
+                    result = tftp.search(mac, filename)
+                elif mac is None and filename is not None:
+                    result = tftp.search(mac, filename)
+                else:
+                    result = tftp.search(mac, filename)
+            elif options.create:
+                if mac is None or mac == "":
+                    msg = "Must specify MAC with create."
+                    raise error.InputError, msg
+                if filename is None or filename == "":
+                    msg = "Must specify FILENAME with create"
+                    raise error.InputError, msg                                     
+                result = tftp.create(mac, filename)
+            elif options.delete:
+                if mac is None or mac == "":
+                    msg = "Must specify MAC with delete."
+                    raise error.InputError, msg                              
+                result = tftp.delete(mac)
+            else:
+                parser.error("Unknown action")
+            log.info(result['msg'])
+            if (options.search and result['count'] > 0) or options.create:
+                log.info(result['data'])
+        except error.SpokeError, e:
+            log.error(e.msg)
+            if e.traceback:
+                log.debug(e.traceback)
+            raise e
+        
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e

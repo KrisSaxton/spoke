@@ -1,0 +1,193 @@
+#!/usr/bin/env python
+"""Command line interface to Spoke VM API."""
+
+# core modules
+import re
+import sys
+from optparse import OptionParser, OptionGroup
+
+# own modules
+import error
+import config
+import logger
+import common
+
+version = common.version
+
+default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+
+def main():
+    usage = """Usage: %prog [options] -VP [args]
+
+Manage virtual machines
+
+Arguments:
+    HOSTNAME        hostname of virtual machine (e.g. vm-01)
+    UUID            UUID of virtual machine (e.g. 01)
+    MEM             memory of virtual machine in MB (e.g. 512)
+    CPU             cpu units of virtual machine (e.g. 2)
+    NETWORK_LAYOUT  a group of interfaces defined in spoke.conf (e.g. with_internet)
+    STORAGE_LAYOUT  a group of disks defined in spoke.conf (e.g. with_san)
+    INSTALL         True or False: True will perform an operating system install
+    STATE           power state of virtual machine [on|off|reboot|forceoff]
+
+Examples:
+    spoke-vm --help
+    spoke-vm -v -VS
+    spoke-vm -V --create test-01 01 256 1 xen basic with_internet
+    spoke-vm -VD test-01
+    spoke-vm -P test-01 on
+"""
+    parser = OptionParser(usage, version=version)
+    group = OptionGroup(parser, "Common Options")
+    group.add_option('-v', '--verbose', action='store_true', 
+                          dest='verbose', help="verbose console logging, search returns XML")
+    group.add_option('-q', '--quiet', action='store_true', 
+                          dest='quiet', help="no console logging")
+    group.add_option('-f', '--force', action='store_true',
+                          dest='force', help="don't prompt for confirmation")
+    group.add_option('-c', '--config', action='store', dest='config_file', 
+                     metavar='CONF', default=default_config_file,
+                     help="config file, [default: %default]")
+    group.add_option('-S', '--search', action='store_true',
+                          dest='search', help="search for virtual machine (object)")
+    group.add_option('-C', '--create', action='store_true',
+                          dest='create', help="create a virtual machine (object)")
+    group.add_option('-D', '--delete', action='store_true',
+                          dest='delete', help="delete a virtual machine (object)")
+    group.add_option('-M', '--modify', action='store_true',
+                          dest='modify', help="modify a virtual machine (object)")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "VM Store Options", "Usage: spoke-vm -V [options] [HOSTNAME] [UUID] [MEM] [CPU] [FAMILY ][STORAGE_LAYOUT] [NETWORK_LAYOUT] [INSTALL]")
+    group.add_option('-V', '--vmstore', action='store_true', dest='vmstore',
+                     help="perform a virtual machine store action on hypervisor")
+    group.add_option('-I', '--install', action='store_true', dest='install',
+                     help='install operating system on boot')
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "VM Power Options", "Usage: spoke-vm -P [options] HOSTNAME STATE")
+    group.add_option('-P', '--power', action='store_true', dest='power',
+                     help="peform a virtual machine power action via hypervisor")
+    parser.add_option_group(group)
+    
+    (options, args) = parser.parse_args()
+    try:
+        conf = config.setup(options.config_file)
+    except error.ConfigError, e:
+        print e.msg
+        raise e
+        
+    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+
+    hv_uri = conf.get('VM', 'hv_uri')
+    try:
+        vm_types = conf.get('VM', 'vm_types')
+    except:
+        vm_types = 'test,xen,kvm,vmware'
+    vm_types_re = vm_types.replace(',','|')
+        
+    family = re.compile('^%s' % vm_types_re)
+    vm_family = family.match(hv_uri)
+    try:
+        vm_family = vm_family.group(0)
+    except AttributeError as e:
+        msg = "not using valid family in hv_uri, must be one of: %s" % vm_types
+        raise error.ConfigError(msg)
+    
+    # parse args
+    if options.power:
+        if not (options.search or options.modify or options.create or options.delete):
+            parser.error('Invalid syntax try --help')
+        if options.search or options.create or options.delete:
+            if len(args) != 1:
+                parser.error("Please specify vm_name")
+            vm_name = args[0]
+        elif options.modify:
+            if len(args) <2:
+                parser.error("Please specify vm_name and one of: on|off|reboot|forceoff")
+            (vm_name, state) = args
+            if len(args) < 1:
+                parser.error("Please specify vm_name")
+            vm_name = args[0]
+            
+    elif options.vmstore:
+        if options.search:
+            if len(args) < 1:
+                vm_name = None
+            else:
+                vm_name = args[0]
+        if options.create:
+            if len(args) != 7:
+                parser.error("Please specify all of: name, uuid, mem, cpu, family, storage_layout and network_layout")
+            (vm_name, vm_uuid, vm_mem, vm_cpu, vm_family, vm_storage_layout, 
+             vm_network_layout) = args
+        if options.delete:
+            if len(args) < 1:
+                parser.error("Please specify vm_name")
+            vm_name = args[0]
+    else:
+        parser.error("Unknown action: please specify one of -VP")
+            
+    # Now perform the action
+    try: 
+        if options.vmstore:
+            if vm_family == "xen" or vm_family == "test":
+                from vm_storage import SpokeVMStorageXen
+                vms = SpokeVMStorageXen(hv_uri)
+            elif vm_family == "kvm":
+                from vm_storage import SpokeVMStorageKvm
+                vms = SpokeVMStorageKvm(hv_uri)
+            
+            if options.search:
+                result = vms.get(vm_name)
+            elif options.create:
+                result = vms.create(vm_name, vm_uuid, vm_mem, vm_cpu, vm_family,
+                                vm_storage_layout, vm_network_layout,
+                                vm_install=options.install)
+            elif options.delete:
+                result = vms.delete(vm_name)
+            elif options.modify:
+                parser.error("Modify not implemented yet; while True: punch(kris)")
+            else:
+                parser.error('Unknown option; please specify one of: -SCMD')
+        elif options.power:  
+        # TODO Would be better to fold this into the class: have a setup method
+        # on the module which parsed the config and worked out the correct 
+        # class to use based on the uri, returning a connection object.
+            if vm_family == "xen" or vm_family == "test":
+                from vm_power import SpokeVMPowerXen
+                vmp = SpokeVMPowerXen(hv_uri, vm_name)
+            elif vm_family == "kvm":
+                from vm_power import SpokeVMPowerKvm
+                vmp = SpokeVMPowerKvm(hv_uri, vm_name)
+            
+            if options.search:
+                result = vmp.get()
+            elif options.create:
+                result = vmp.create()
+            elif options.modify:
+                result = vmp.modify(state)
+            elif options.delete:
+                result = vmp.delete()
+        log.info(result['msg'])
+        if (options.search and result['count'] > 0) or options.create:
+            log.info(result['data'])
+    except error.SpokeError, e:
+        log.error(e.msg)
+        if e.traceback:
+            log.debug(e.traceback)
+        raise e
+   
+if __name__ == '__main__':
+    try:
+        main()
+    except error.ConfigError, e:
+        print e.msg
+        sys.exit(e.exit_code)
+    except error.SpokeError, e:
+        sys.exit(e.exit_code)
+    except Exception, e:
+        print '''Sorry, something went wrong, you shouldn't be seeing this:'''
+        print e
+
