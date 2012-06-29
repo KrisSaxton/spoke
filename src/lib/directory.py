@@ -122,6 +122,7 @@ class SpokeLDAP:
             attrlist = None
         
         try:
+            self.log.debug('Running: %s' % operation[type](dn, dn_info) )
             operation[type](dn, dn_info)
         except ldap.ALREADY_EXISTS:
             msg = 'Entry %s already exists.' % dn
