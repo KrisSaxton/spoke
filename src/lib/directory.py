@@ -85,27 +85,7 @@ class SpokeLDAP:
         """Bind to LDAP directory; return an LDAP connection object."""
         self.config = config.setup()
         self.log = logger.setup(__name__)
-        self.LDAP = setup().LDAP     
-
-#    def search_uniq(self, base_dn, search_scope, search_filter, retrieve_attr):
-#        """Extend basic ldap search. Return None if object requested not found,
-#        result if unique result found and throw SearchUniqueError exception
-#        if multiple results found."""
-        
-#        result = self.LDAP.search_s(base_dn, search_scope, search_filter,
-#                                    retrieve_attr)
-#        if not result:
-#            self.log.debug('No results found for filter: %s at base: %s with \
-#scope: %s' % (search_filter, base_dn, search_scope))
-#        elif len(result) > 1:
-#            self.log.error('Multiple results found yet uniqueness requested')
-#            for r in result:
-#                self.log.debug('Found: ' + r[0])
-#            raise error.SearchUniqueError('Multiple results returned')
-#        elif len(result) == 1:
-#            self.log.debug('Found: ' + result[0][0])
-#            return result
-#        return result
+        self.LDAP = setup().LDAP
 
     def _create_object(self, dn, dn_info):
         """Create a new LDAP object (e.g. a dn or attribute)."""
@@ -122,7 +102,6 @@ class SpokeLDAP:
             attrlist = None
         
         try:
-            self.log.debug('Running: %s' % operation[type](dn, dn_info) )
             operation[type](dn, dn_info)
         except ldap.ALREADY_EXISTS:
             msg = 'Entry %s already exists.' % dn

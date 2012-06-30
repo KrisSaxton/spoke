@@ -3,7 +3,7 @@ import unittest
 
 import config
 import error
-import ldap_helper
+import directory
 
 class SpokeLDAPTest(unittest.TestCase):
     
@@ -17,7 +17,7 @@ class SpokeLDAPTest(unittest.TestCase):
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
         try:
-            self.ldap = ldap_helper.SpokeLDAP()
+            self.ldap = directory.SpokeLDAP()
         except:
             raise
         self.base_dn = self.config.get('LDAP', 'basedn')
@@ -51,14 +51,15 @@ class SpokeLDAPTest(unittest.TestCase):
         search_scope = self.search_scope
         retrieve_attr = ['dn']
         search_filter = rdn
-        expected_results = [(rdn + ',' + base_dn, {})] # Single entry
-
-        """Make sure search returns what we expect."""
-        self.assertEqual(self.ldap.search_uniq(base_dn, 
+        expected_result = [(rdn + ',' + base_dn, {})] # Single entry
+        result = self.ldap._get_object(base_dn, 
                                                search_scope, 
                                                search_filter, 
-                                               retrieve_attr),
-                                               expected_results)
+                                               retrieve_attr,
+                                               unique=True)['data']
+
+        """Make sure search returns what we expect."""
+        self.assertEqual(result, expected_result)
         """Delete data."""
         self.ldap.LDAP.delete_s(dn)
     
@@ -69,9 +70,10 @@ class SpokeLDAPTest(unittest.TestCase):
         search_scope = self.search_scope
         retrieve_attr = self.retrieve_attr
         search_filter = 'o=%s' % org_name
-        
-        self.assertFalse(self.ldap.search_uniq(base_dn, search_scope, 
-                                               search_filter, retrieve_attr))      
+        result = self.ldap._get_object(base_dn, search_scope, 
+                                               search_filter, retrieve_attr)['data']
+        expected_result=[]
+        self.assertEqual(result, expected_result)  
         
     def test_spoke_LDAP_search_unique_multiple(self):
         """Unique search raises SearchUniqueError when multiple results found.
@@ -106,9 +108,9 @@ class SpokeLDAPTest(unittest.TestCase):
         
         """Run the tests"""    
         search_filter = 'uid=' + uid
-        self.assertRaises(error.SearchUniqueError, self.ldap.search_uniq, 
+        self.assertRaises(error.SearchUniqueError, self.ldap._get_object, 
                           self.base_dn, self.search_scope,
-                          search_filter, self.retrieve_attr)   
+                          search_filter, self.retrieve_attr, unique=True)
         
         """Delete the test data"""
         for org_name in org_names:
