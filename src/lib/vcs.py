@@ -6,6 +6,9 @@ Exceptions:
 NotFound - raised on failure to find an object when one is expected.
 AlreadyExists -raised on attempts to create an object when one already exists.
 InputError - raised on invalid input.
+
+ldap.MOD_DELETE = 1
+ldap.MOD_ADD = 0
 """
 
 # own modules
@@ -15,9 +18,6 @@ import config
 import logger
 from directory import SpokeLDAP
 from user import SpokeUser
-
-# 3rd party modules
-import ldap
 
 class SpokeSVN(SpokeLDAP):
     
@@ -74,9 +74,9 @@ class SpokeSVN(SpokeLDAP):
         except (KeyError, error.NotFound):
             if not self.svn_class in self.user_classes:
                 # This is our first repository, so add class and enable.
-                dn_info.append((ldap.MOD_ADD, 'objectClass', self.svn_class))
-                dn_info.append((ldap.MOD_ADD, self.svn_enable_attr, 'TRUE'))
-            dn_info.append((ldap.MOD_ADD, self.svn_repo_attr, repo))
+                dn_info.append((0, 'objectClass', self.svn_class))
+                dn_info.append((0, self.svn_enable_attr, 'TRUE'))
+            dn_info.append((0, self.svn_repo_attr, repo))
             self.log.debug('Adding %s to %s ' % (dn_info, dn))
             result = self._create_object(dn, dn_info)
             self.log.debug('Result: %s' % result)
@@ -125,10 +125,10 @@ class SpokeSVN(SpokeLDAP):
         dn = self.user_dn
         dn_info = []
         if self.svn_repo_attr in self.user_attrs:
-            dn_info.append((ldap.MOD_DELETE, self.svn_repo_attr, repo))
+            dn_info.append((1, self.svn_repo_attr, repo))
         if len(self.user_attrs) == 1:
             # This is the last repository, so we can delete the class also.
-            dn_info.append((ldap.MOD_DELETE, 'objectClass', self.svn_class))
+            dn_info.append((1, 'objectClass', self.svn_class))
             
         if dn_info == []:
             msg = 'Repository not enabled for user %s.' % self.user_dn
