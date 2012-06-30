@@ -231,8 +231,6 @@ class SpokeHostUUID(SpokeLDAP):
         self.next_uuid_start = str(self.next_uuid_start)
         dn = self.next_uuid_dn
         dn_info = []
-        if not 'top' in self.next_uuid_classes:
-            dn_info.append((0, 'objectClass', 'top'))
         if not self.next_uuid_class in self.next_uuid_classes:
             dn_info.append((0, 'objectClass', self.next_uuid_class))
         if not self.next_uuid_attr in self.next_uuid_attrs:
