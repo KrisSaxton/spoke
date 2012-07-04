@@ -1,13 +1,18 @@
 #!/usr/bin/env python
+# core modules
 import sys
+
+# own modules
 import config
+import logger
 import mc_helper as mc
 from host import SpokeHostUUID
-
+       
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 config = config.setup(config_file)
-    
+
 if __name__ == '__main__':
+    log = logger.setup('main', verbose=False, quiet=True)
     mc = mc.MCollectiveAction()
     request = mc.request()
     try:
@@ -17,34 +22,29 @@ if __name__ == '__main__':
     try:
         qty = request['data']['qty']
     except KeyError:
-        qty = None
-    msg = "Calling SpokeHostUUID from mco"
-    #log.debug(msg)
+        qty = 1
     if request['action'] == 'create':
         try:
-            mc.reply = SpokeHostUUID().create(uuid_start)
+            mc.data = SpokeHostUUID().create(uuid_start)['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'get':
         try:
-            mc.reply = SpokeHostUUID().get()
+            mc.data = SpokeHostUUID().get()['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'delete':
         try:
-            mc.reply = SpokeHostUUID().delete()
+            mc.data = SpokeHostUUID().delete()['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'reserve':
         try:
-            mc.reply = SpokeHostUUID().modify(increment=qty)
+            mc.data = SpokeHostUUID().modify(increment=qty)['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)

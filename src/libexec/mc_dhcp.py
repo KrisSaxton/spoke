@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+# core modules
 import sys
 
+# own modules
 import error
 import config
 import logger
 import mc_helper as mc
-
 from dhcp import SpokeDHCPHost, SpokeDHCPAttr
         
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
@@ -66,4 +67,5 @@ if __name__ == '__main__':
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)
