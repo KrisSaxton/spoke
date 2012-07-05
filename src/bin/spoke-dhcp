@@ -132,10 +132,9 @@ Examples:
             mac = None
             ip = None
     elif options.server or options.service:
-        if options.create or options.delete:
-            if len(args) != 1:
-                parser.error("Please specify DHCP_SERVER ")
-            dhcp_server = args[0]
+        if len(args) != 1:
+            parser.error("Please specify DHCP_SERVER ")
+        dhcp_server = args[0]
     elif options.subnet:
         if options.create:
             if len(args) != 3:
@@ -143,7 +142,8 @@ Examples:
             (dhcp_server, subnet, mask) = args
         elif len(args) != 2:
             parser.error("Please specify DHCP_SERVER and SUBNET")
-        (dhcp_server, subnet) = args
+        else:
+            (dhcp_server, subnet) = args
     elif options.group:
         if len(args) != 2:
             parser.error("Please specify DHCP_SERVER and GROUP_NAME")
@@ -200,10 +200,7 @@ Examples:
             elif options.delete:
                 result = server.delete(dhcp_server)
             else:
-                parser.error('Unknown option; please specify one of: -CSMD')  
-            log.info(result['msg'])
-            if (options.search and result['count'] > 0) or options.create:
-                log.info(result['data'])
+                parser.error('Unknown option; please specify one of: -CSMD')
         elif options.service:
             from dhcp import SpokeDHCPService
             service = SpokeDHCPService()
@@ -214,17 +211,15 @@ Examples:
             elif options.delete:
                 result = service.delete(dhcp_server)
             else:
-                parser.error('Unknown option; please specify one of: -CSMD')  
-            log.info(result['msg'])
-            if (options.search and result['count'] > 0) or options.create:
-                log.info(result['data'])
+                parser.error('Unknown option; please specify one of: -CSMD')
         elif options.subnet:
             from dhcp import SpokeDHCPSubnet
             sub = SpokeDHCPSubnet(dhcp_server)
             if options.search:
                 result = sub.get(subnet)
             elif options.create:       
-                result = sub.create(subnet, mask, start_ip, stop_ip)
+                result = sub.create(subnet, mask, options.start_ip, 
+                                    options.stop_ip)
             elif options.delete:
                 result = sub.delete(subnet)
         elif options.group:

@@ -31,8 +31,8 @@ if __name__ == '__main__':
             
     if request['action'] == 'create':
         try:
-            mac             = request['data']['mac']
-            ip              = request['data']['ip']
+            mac = request['data']['mac']
+            ip = request['data']['ip']
             try:
                 mc.info('Creating host %s' % hostname)
                 host.create(hostname)
@@ -55,15 +55,13 @@ if __name__ == '__main__':
             mc.info('Searching for host %s' % hostname)
             mc.reply = host.get(hostname)
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'delete':
         try:
             mc.info('Deleting host %s' % hostname)
             mc.reply = host.delete(hostname)
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
