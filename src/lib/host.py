@@ -200,11 +200,11 @@ class SpokeHostUUID(SpokeLDAP):
         self.config = config.setup()
         self.log = logger.setup(__name__)
         self.search_scope = 0 #ldap.SCOPE_BASE
-        self.next_uuid_attr = self.config.get('ATTR_MAP','next_uuid_attr', 'aenetHostUUID')
+        self.next_uuid_attr = self.config.get('UUID','next_uuid_attr', 'aenetHostUUID')
         self.next_uuid_dn = self.config.get('LDAP','basedn')
-        self.next_uuid_dn = self.config.get('ATTR_MAP','next_uuid_dn', self.next_uuid_dn)
-        self.next_uuid_class = self.config.get('ATTR_MAP','next_uuid_class', 'aenetNextUUID')
-        self.next_uuid_start = self.config.get('ATTR_MAP','next_uuid_start', 1)   
+        self.next_uuid_dn = self.config.get('UUID','next_uuid_dn', self.next_uuid_dn)
+        self.next_uuid_class = self.config.get('UUID','next_uuid_class', 'aenetNextUUID')
+        self.next_uuid_start = self.config.get('UUID','next_uuid_start', 1)   
         self.next_uuid = self._get_next_uuid_dn()['data']
         self.next_uuid_attrs = self.next_uuid[0].__getitem__(1)
         self.next_uuid_classes = self.next_uuid_attrs['objectClass']

@@ -79,6 +79,7 @@ class SpokeLVM:
         else:
             msg = 'Create operation returned OK, but unable to find object'
             raise error.NotFound(msg)
+        self.log.debug('Result: %s' % result)
         return result
     
     def get(self, lv_name=None):
@@ -93,7 +94,7 @@ class SpokeLVM:
         self.log.debug(msg)
         try:
             result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        except Exception, e:
+        except Exception:
             msg = 'Running command %s failed' % str_args
             trace = traceback.format_exec()
             raise error.SpokeError(msg, trace)
@@ -171,6 +172,7 @@ class SpokeLVM:
         result = self.get(lv_name)
         if result['exit_code'] == 3 and result['count'] == 0:
             result['msg'] = "Deleted %s:" % result['type']
+            self.log.debug('Result: %s' % result)
             return result
         else:
             msg = 'Delete operation returned OK, but object still there?'
