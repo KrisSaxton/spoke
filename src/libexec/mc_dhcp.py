@@ -43,9 +43,9 @@ if __name__ == '__main__':
             attr.create("dhcpHWAddress", "ethernet %s" % mac )
             attr.create("dhcpStatements", "fixed-address %s" %ip )
             attr.create("dhcpOption", "host-name \"%s\"" %hostname )
-            mc.reply = True
+            mc.reply = host.get(hostname)
         except Exception as e:
-            mc.fail(e)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'search':
         try:
             hostname = request['data']['hostname']

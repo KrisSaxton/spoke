@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# core modules
 import sys
 
+# own modules
 import error
 import config
 import logger
@@ -29,24 +31,25 @@ if __name__ == '__main__':
             target = request['data']['target']
         except KeyError:
             target = None
-        mc.info('Searching for TFTP links')
-        mc.reply = tftp.search(mac=mac, target=target)
+        try:
+            mc.data = tftp.search(mac=mac, target=target)
+        except error.SpokeError as e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'create':
         mac = request['data']['mac']
         target = request['data']['target']
         try:
-            mc.info('Creating TFTP link between %s and %s' % (mac, target))
-            mc.reply = tftp.create(mac, target)
-        except Exception as e:
-            mc.fail(e)
+            mc.data = tftp.create(mac, target)
+        except error.SpokeError as e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'delete':
         mac = request['data']['mac']
         try:
-            mc.info('Deleting TFTP link for %s' % mac)
-            mc.reply = tftp.delete(mac)
-        except Exception as e:
-            mc.fail(e)
+            mc.data = tftp.delete(mac)
+        except error.SpokeError as e:
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)

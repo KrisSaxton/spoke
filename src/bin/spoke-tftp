@@ -128,6 +128,8 @@ Examples:
             if e.traceback:
                 log.debug(e.traceback)
             raise e
+    else:
+            parser.error("Unknown action: please specify one of -T")
         
 if __name__ == '__main__':
     try:
