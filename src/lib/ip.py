@@ -118,13 +118,14 @@ class SpokeSubnet(SpokeKV):
             msg = 'Subnets larger than %s must be created manually' % self.mask
             raise error.InputError(msg)
         for ip in self.subnet:
-            all_ips.add(ip)
+            all_ips.add(str(ip))
         self.free_ips = all_ips - self.aloc_ips
             
         for free_ip in self.free_ips:
             self.KV.sadd(self.kv_free, free_ip)
-            self.KV.srem(self.kv_free, self.subnet.network())
-            self.KV.srem(self.kv_free, self.subnet.broadcast())
+        # Remove the network and broadcast addresses
+        self.KV.srem(self.kv_free, self.subnet.network())
+        self.KV.srem(self.kv_free, self.subnet.broadcast())
         msg = 'KV store %s populated with %s free IP addresses' % \
             (self.kv_free, len(self.free_ips))
         self.log.debug(msg)

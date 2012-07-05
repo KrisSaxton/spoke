@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+# core modules
 import sys
+
+# own modules
 import config
+import logger
 import mc_helper as mc
 from ip import SpokeSubnet
 
@@ -9,6 +13,7 @@ config = config.setup(config_file)
 
 if __name__ == '__main__':
     mc = mc.MCollectiveAction()
+    log = logger.setup('main', verbose=False, quiet=True)
     request = mc.request()
     network = request['data']['network']
     mask = request['data']['mask']
@@ -19,44 +24,28 @@ if __name__ == '__main__':
     try:
         qty = request['data']['qty']
     except KeyError:
-        qty = None
+        qty = 1
     try:
         ip = request['data']['ip']
     except KeyError:
         ip = None
-    msg = "Calling SpokeSubnet from mco with args network=%s, mask=%s and dc=%s" % (network, mask, dc)
-    #log.debug(msg)
-    if request['action'] == 'create':
+    if request['action'] == 'search':
         try:
-            mc.reply = SpokeSubnet(network, mask, dc).create()
+            mc.data = SpokeSubnet(network, mask, dc).get()['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
-    elif request['action'] == 'search':
-        try:
-            mc.reply = SpokeSubnet(network, mask, dc).get()
-        except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
-    elif request['action'] == 'delete':
-        try:
-            mc.reply = SpokeSubnet(network, mask, dc).delete()
-        except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'reserve':
         try:
-            mc.reply = SpokeSubnet(network, mask, dc).modify(reserve=qty)
+            mc.data = SpokeSubnet(network, mask, dc).modify(reserve=qty)['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'release':
         try:
-            mc.reply = SpokeSubnet(network, mask, dc).modify(release=ip)
+            mc.data = SpokeSubnet(network, mask, dc).modify(release=ip)['data']
         except Exception as e:
-            msg = type(e).__name__ + ": " + e.msg
-            mc.fail(msg, e.exit_code)
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)
