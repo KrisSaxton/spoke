@@ -8,7 +8,7 @@ module MCollective
             action "create" do
                 validate :org, String
                 validate :hostname, String
-                validate :uuid, String
+                validate :uuid, Integer
                 implemented_by "/usr/local/pkg/spoke/libexec/mc_host.py"
             end
             action "delete" do

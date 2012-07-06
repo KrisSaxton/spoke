@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# core modules
 import sys
-
+# own modules
+import error
 import config
 import logger
 import mc_helper as mc
@@ -20,49 +22,43 @@ if __name__ == '__main__':
         hv_uri = config.get('VM', 'hv_uri')
         mc.info('Connecting to hypervisor URI %s' % hv_uri)
         vm = SpokeVMStorageXen(hv_uri)
-    except Exception as e:
-        mc.fail(e)
-
-    if request['action'] != 'search':
-        try:
-            vm_name = request['data']['hostname']
-        except KeyError:
-            mc.fail("Missing input hostname", 2)
+    except error.SpokeError, e:
+        mc.fail(e.msg, e.exit_code)
             
     if request['action'] == 'create':
+        vm_name             = request['data']['hostname']
+        vm_uuid             = request['data']['uuid']
+        vm_mem              = request['data']['mem']
+        vm_cpu              = request['data']['cpu']
+        vm_family           = request['data']['family']
+        vm_storage_layout   = request['data']['storage_layout']
+        vm_network_layout   = request['data']['network_layout']
         try:
-            vm_uuid             = request['data']['uuid']
-            vm_mem              = request['data']['mem']
-            vm_cpu              = request['data']['cpu']
-            vm_family           = request['data']['family']
-            vm_storage_layout   = request['data']['storage_layout']
-            vm_network_layout   = request['data']['network_layout']
-            try:
-                vm_install = request['data']['install']
-            except KeyError:
-                vm_install = None
-            mc.info('Creating VM %s' % vm_name)
-            mc.reply = vm.create(vm_name, vm_uuid, vm_mem, vm_cpu, vm_family,
+            vm_install = request['data']['install']
+        except KeyError:
+            vm_install = None
+        try:
+            mc.data = vm.create(vm_name, vm_uuid, vm_mem, vm_cpu, vm_family,
                vm_storage_layout, vm_network_layout, vm_install)
-        except Exception as e:
-            mc.fail(e)
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'search':
         try:
             vm_name = request['data']['hostname']
         except KeyError:
             vm_name = None
         try:
-            mc.info('Searching for VM %s' % vm_name)
-            mc.reply = vm.get(vm_name)
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vm.get(vm_name)
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'delete':
+        vm_name = request['data']['hostname']
         try:
-            mc.info('Deleting VM %s' % vm_name)
-            mc.reply = vm.delete(vm_name)
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vm.delete(vm_name)
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)

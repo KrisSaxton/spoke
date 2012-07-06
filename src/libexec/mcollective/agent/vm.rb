@@ -6,7 +6,7 @@ module MCollective
             end
             action "create" do
                 validate :hostname, String
-                validate :uuid, String
+                validate :uuid, Integer
                 validate :mem, String
                 validate :cpu, String
                 validate :family, String

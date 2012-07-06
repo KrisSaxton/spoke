@@ -133,6 +133,7 @@ def validate_uuid(uuid):
     if uuid is None:
         msg = "Please specify host UUID"
         raise error.InputError, msg
+    uuid = str(uuid)
     pattern = re.compile('^[0-9]{1,12}$')
     valid_uuid = pattern.match(uuid)
     if not valid_uuid:
@@ -215,9 +216,9 @@ def validate_interfaces(interfaces):
         if len(item) != 3:
             msg = "Each Interface must have bridge, mac and source."
             raise error.InputError, msg
-        bridge = re.compile('^br[0-9]$')
+        bridge = re.compile('^eth|br[0-9]$')
         if bridge.match(item[0]) == None:
-            msg = "Interface bridge must be like br0."
+            msg = "Interface bridge %s must be like brX or ethX." % item[0]
             raise error.InputError, msg
         mac = re.compile('^([0-9a-f]{2}[:]){5}[0-9a-f]{2}$')
         if mac.match(item[1]) == None:
@@ -237,9 +238,9 @@ def validate_interfaces_in_conf(interfaces):
     if len(interfaces) != 4:
         msg = "Each Interface must have bridge, source, network and netmask."
         raise error.ConfigError, msg
-    bridge = re.compile('^br[0-9]$')
+    bridge = re.compile('^eth|br[0-9]$')
     if bridge.match(interfaces[0]) == None:
-        msg = "Interface bridge must be like br0."
+        msg = "Interface bridge %s must be like brX or ethX." % interfaces[0]
         raise error.ConfigError, msg
     source = re.compile('^eth[0-9]$')
     if source.match(interfaces[1]) == None:
@@ -252,7 +253,7 @@ def validate_interfaces_in_conf(interfaces):
     return interfaces
 
 def validate_disks_in_conf(disks):
-    '''validate interfaces, makes sure we have good list format and contents'''
+    '''validate disks, makes sure we have good list format and contents'''
     if type(disks).__name__ != 'list':
         msg = "Disk input wasn't successfully input as list."
         raise error.ConfigError, msg

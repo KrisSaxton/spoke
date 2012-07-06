@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+# core modules
 import sys
+# own modules
+import error
 import config
 import logger
 import mc_helper as mc
@@ -17,43 +20,37 @@ if __name__ == '__main__':
     try:
         hv_uri = config.get('VM', 'hv_uri')
         vm_name = request['data']['hostname']
-        mc.info('Connecting to hypervisor URI %s' % hv_uri)
         vmp = SpokeVMPowerXen(hv_uri, vm_name)
-    except Exception as e:
-        mc.fail(e)
+    except error.SpokeError, e:
+        mc.fail(e.msg, e.exit_code)
 
     if request['action'] == 'search':
         try:
-            mc.info('Retrieving power state for VM %s' % vm_name)
-            mc.reply = vmp.get()
-        except Exception as e:
-            mc.fail(e)
-            
+            mc.data = vmp.get()
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)        
     elif request['action'] == 'on':
         try:
-            mc.info('Powering on VM %s' % vm_name)
-            mc.reply = vmp.create()
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vmp.create()
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'off':
         try:
-            mc.info('Powering off VM %s' % vm_name)
-            mc.reply = vmp.delete()
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vmp.delete()
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'forceoff':
         try:
-            mc.info('Powering off (force) VM %s' % vm_name)
-            mc.reply = vmp.delete(force=True)
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vmp.delete(force=True)
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'reboot':
         try:
-            mc.info('Power cycling VM %s' % vm_name)
-            mc.reply = vmp.modify(vm_power_state='reboot')
-        except Exception as e:
-            mc.fail(e)
+            mc.data = vmp.modify(vm_power_state='reboot')
+        except error.SpokeError, e:
+            mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
         mc.fail(msg, 2)
+    log.info('Result via Mcollective: %s' % mc.data)
     sys.exit(0)

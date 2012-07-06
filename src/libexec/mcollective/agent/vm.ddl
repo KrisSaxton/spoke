@@ -1,49 +1,33 @@
-metadata :name        => "Spoke Host Agent",
-                     :description => "Spoke Host service for MCollective",
+metadata :name        => "Spoke Virtual Machine Agent",
+                     :description => "Spoke Virtual Machine service for MCollective",
                      :author      => "Kris Saxton",
                      :license     => "ALv2",
                      :version     => "1.0",
                      :url         => "http://automationlogic.com/spoke",
                      :timeout     => 10
                      
-action "search", :description => "Search for a host record" do
+action "search", :description => "Search for a virtual machine" do
     display :always
 
-    input :org,
-          :prompt      => "Organisation",
-          :description => "The organisation to whom the host belongs",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
- 
     input :hostname,
-          :prompt      => "Hostname",
-          :description => "The hostname of the host entry",
+          :prompt      => "Virtual machine name",
+          :description => "The name of the virtual machine",
           :type        => :string,
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
           :optional    => true
 
     output :data,
-           :description => "Host info",
-           :display_as  => "Found host(s)"
+           :description => "Virtual machine info",
+           :display_as  => "Found virtual machine(s)"
 end
 
-action "create", :description => "Create a host record" do
+action "create", :description => "Create a virtual machine" do
     display :always
-    
-    input :org,
-          :prompt      => "Organisation",
-          :description => "The organisation to whom the host belongs",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
  
     input :hostname,
-          :prompt      => "Hostname",
-          :description => "The hostname of the host entry",
+          :prompt      => "Virtual machine name",
+          :description => "The hostname of the virtual machine",
           :type        => :string,
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
@@ -51,19 +35,19 @@ action "create", :description => "Create a host record" do
           
     input :uuid,
           :prompt      => "UUID",
-          :description => "The host's UUID",
+          :description => "The vm's UUID",
           :type        => :integer,
           :optional    => false
           
     input :mem,
           :prompt      => "Memory",
-          :description => "The host's memory in MB",
+          :description => "The vm's memory in MB",
           :type        => :integer,
           :optional    => false
 
     input :cpu,
           :prompt      => "CPU",
-          :description => "The number of CPU units available to the host",
+          :description => "The number of CPU units available to the vm",
           :type        => :integer,
           :optional    => false
 
@@ -74,18 +58,10 @@ action "create", :description => "Create a host record" do
           :validation  => '^(test|xen|kvm|vmware)$',
           :maxlength   => 10,
           :optional    => false
-
-    input :vm_type,
-          :prompt      => "Virtual Machine Type",
-          :description => "The type of virtualisation used",
-          :type        => :string,
-          :validation  => '^(phys|full|para)$',
-          :maxlength   => 10,
-          :optional    => false
           
     input :storage_layout,
           :prompt      => "Storage Layout",
-          :description => "The nickname for the host's storage layout",
+          :description => "The nickname for the vm's storage layout",
           :type        => :string,
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
@@ -93,7 +69,7 @@ action "create", :description => "Create a host record" do
           
     input :network_layout,
           :prompt      => "Network Layout",
-          :description => "The nickname for the host's network layout",
+          :description => "The nickname for the vm's network layout",
           :type        => :string,
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
@@ -108,30 +84,22 @@ action "create", :description => "Create a host record" do
           :optional    => true
           
     output :data,
-           :description => "New host info",
-           :display_as  => "Created host record"
+           :description => "New virtual machine info",
+           :display_as  => "Created virtual machine"
 end
 
-action "delete", :description => "Delete a host record" do
+action "delete", :description => "Delete a virtual machine" do
     display :always
-
-    input :org,
-          :prompt      => "Organisation",
-          :description => "The organisation to whom the host belongs",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
  
     input :hostname,
-          :prompt      => "Hostname",
-          :description => "The hostname of the host entry",
+          :prompt      => "Virtual machine name",
+          :description => "The hostname of the virtual machine",
           :type        => :string,
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
           :optional    => false
 
     output :data,
-           :description => "Deleted host record",
-           :display_as  => "Deleted host record"
+           :description => "Deleted virtual machine",
+           :display_as  => "Deleted virtual machine"
 end

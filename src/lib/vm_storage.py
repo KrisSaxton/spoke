@@ -163,7 +163,7 @@ class SpokeVMStorage:
         if vm_interfaces is not None:
             for interface in vm_interfaces:
                 #get input from interface list
-                bridge = int( interface[0].lstrip('br') )
+                bridge = int( interface[0].lstrip('breth') )
                 mac = interface[1]
                 source_interface = interface[2]
                 
@@ -183,7 +183,7 @@ class SpokeVMStorage:
             interfaces = sorted(interfaces, key=itemgetter(0))
             for interface in interfaces:
                 interface = common.validate_interfaces_in_conf(interface)
-                iface_number = int( interface[0].lstrip('br') )
+                iface_number = int( interface[0].lstrip('breth') )
                 if iface_number == 0:
                     boot_mac = common.mac_from_uuid(vm_uuid, iface_number)                   
                     boot_int = interface[1]
