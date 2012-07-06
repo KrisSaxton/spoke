@@ -35,7 +35,7 @@ Arguments:
 Examples:
     spoke-host --help
     spoke-host -H -S acme test-01
-    spoke-host -v -H --create acme test-01 01 256 1 basic with_internet para xen
+    spoke-host -v -H --create acme test-01 01 256 1 xen para basic with_internet
     spoee-host --host -D acme test-01
     spoke-host -U --reserve 2
 """
