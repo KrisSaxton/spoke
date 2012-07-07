@@ -211,24 +211,21 @@ class SpokeVMStorage:
         else:
             xml.createChild(doc, domain, "bootloader", None, "/usr/bin/pygrub" )
 
-        msg = 'Adding VM definition %s' % xml.out(doc)
-        self.log.debug(msg)
         try:
             out = self.conn.defineXML(xml.out(doc))
-        except Exception as e:
-            self.log.error(e)
-            raise e
+        except Exception, e:
+            trace = traceback.format_exc()
+            raise error.LibvirtError(e, trace)
         if out == None:
             msg = "Failed to create VM definition for %s" % vm_name
             self.log.error(msg)
             sys.exit(1)
         
-        msg = 'Successfully added VM definition for %s' % vm_name
-        self.log.info(msg)
         #print xml.out(doc) #useful for debug
         result = self.get(vm_name)
         if result['exit_code'] == 0 and result['count'] == 1:
             result['msg'] = "Created %s:" % result['type']
+            self.log.debug('Result: %s' % result)
             return result
         else:
             msg = 'Create operation returned OK, but unable to find object'
@@ -255,58 +252,15 @@ class SpokeVMStorage:
             try:
                 dom = self.conn.lookupByName(vm_name)
             except libvirt.libvirtError:
-                msg = "VM %s not found." % vm_name
-                raise error.NotFound, msg
+                result = common.process_results(data, 'VM')
+                self.log.debug('Result: %s' % result)
+                return result
             info = dom.XMLDesc(3)
             data.append(info)
         #self.conn.close() # Connection closing left to calling app - bad?
-        self.log.debug(data)
         result = common.process_results(data, 'VM')
-        #out = xml.xml_to_text(info, self.headers)
-        #self.log.info(out)
         self.log.debug('Result: %s' % result)
         return result
-        #else:
-        #    if vm_name == None:
-        #        #get list of all inactive and active
-        #        vm_defined_list = self.conn.listDefinedDomains()
-        #        vm_active_list = self.conn.listDomainsID()
-        #        info=[]
-        #        #iterate over these lists and get some info on each domain
-        #        for id in vm_active_list:
-        #            dom = self.conn.lookupByID(id)
-        #            state = dom.info()[0]
-        #            info.append ( { "Name": dom.name(), 
-        #                           "UUID": dom.UUIDString(), 
-        #                           "State": self._lookupState(state), 
-        #                           "XenID": dom.ID() } )
-        #        for name in vm_defined_list:
-        #            dom = self.conn.lookupByName(name)
-        #            state = dom.info()[0]
-        #            info.append ( { "Name": dom.name(), 
-        #                           "UUID": dom.UUIDString(), 
-        #                           "State": self._lookupState(state),
-        #                           "XenID": dom.ID() } )
-        #        self.conn.close()
-        #        self.log.debug(info)
-        #        return info
-        #    #if name given just lookup info for this domain
-        #    else:
-        #        vm_name = common.validate_hostname(vm_name)
-        #        try:
-        #            dom = self.conn.lookupByName(vm_name)
-        #        except libvirt.libvirtError:
-        #            msg = "VM not found."
-        #            raise error.MissingVMHost, msg
-        #        state = dom.info()[0]
-        #        info = ( { "Name": dom.name(), 
-        #                  "UUID": dom.UUIDString(), 
-        #                  "State": self._lookupState(state), 
-        #                  "XenID": dom.ID() } )
-        #        
-        #        self.conn.close()
-        #        self.log.debug(info)
-        #        return [info]
     
     def delete(self, vm_name):
         '''Remove a definition from store, will fail on xen if machine is running'''
