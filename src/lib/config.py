@@ -52,6 +52,7 @@ class SpokeConfig(ConfigParser.ConfigParser):
                 msg = '%s missing required [%s] section' % \
                                                     (self.config_file, section)
                 raise error.ConfigError(msg)
+            result = default
         except ConfigParser.NoOptionError:
             if default == None:
                 msg = '%s missing required \'%s = <value>\' entry' % \

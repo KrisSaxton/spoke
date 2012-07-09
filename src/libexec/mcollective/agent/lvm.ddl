@@ -48,6 +48,12 @@ action "create", :description => "Create a Logical Volume" do
           :validation  => '^[a-zA-Z\-_\d]+$',
           :maxlength   => 20,
           :optional    => false
+          
+    input :lv_size,
+          :prompt      => "Logical Volume Size",
+          :description => "The Logical Volume Size",
+          :type        => :integer,
+          :optional    => false
 
     output :data,
            :description => "New Logical Volume info",
