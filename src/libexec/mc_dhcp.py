@@ -43,8 +43,8 @@ if __name__ == '__main__':
             attr.create("dhcpHWAddress", "ethernet %s" % mac )
             attr.create("dhcpStatements", "fixed-address %s" %ip )
             attr.create("dhcpOption", "host-name \"%s\"" %hostname )
-            mc.reply = host.get(hostname)
-        except Exception as e:
+            mc.data = host.get(hostname)
+        except error.SpokeError, e:
             mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'search':
         try:
@@ -52,15 +52,16 @@ if __name__ == '__main__':
         except KeyError:
             hostname = None
         try:
-            mc.info('Searching for host %s' % hostname)
-            mc.reply = host.get(hostname)
-        except Exception as e:
+            mc.data = host.get(hostname)
+            attrs = mc.data['data'][0][1]
+            mc.mac = attrs['dhcpHWAddress'][0].split()[1]
+            mc.ip = attrs['dhcpStatements'][0].split()[1]
+        except error.SpokeError, e:
             mc.fail(e.msg, e.exit_code)
     elif request['action'] == 'delete':
         try:
-            mc.info('Deleting host %s' % hostname)
-            mc.reply = host.delete(hostname)
-        except Exception as e:
+            mc.data = host.delete(hostname)
+        except error.SpokeError, e:
             mc.fail(e.msg, e.exit_code)
     else:
         msg = "Unknown action: " + request['action']
