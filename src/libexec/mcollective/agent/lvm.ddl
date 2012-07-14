@@ -8,14 +8,6 @@ metadata :name        => "Spoke LVM2 Agent",
                      
 action "search", :description => "Search for Logical Volumes" do
     display :always
-
-    input :vg_name,
-          :prompt      => "Logical Volume Group",
-          :description => "The Logical Volume Group",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
  
     input :lv_name,
           :prompt      => "Logical Volume Name",
@@ -32,14 +24,6 @@ end
 
 action "create", :description => "Create a Logical Volume" do
     display :always
-    
-     input :vg_name,
-          :prompt      => "Logical Volume Group",
-          :description => "The Logical Volume Group",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
  
     input :lv_name,
           :prompt      => "Logical Volume Name",
@@ -62,14 +46,6 @@ end
 
 action "delete", :description => "Delete a Logical Volume" do
     display :always
-
-    input :vg_name,
-          :prompt      => "Logical Volume Group",
-          :description => "The Logical Volume Group",
-          :type        => :string,
-          :validation  => '^[a-zA-Z\-_\d]+$',
-          :maxlength   => 20,
-          :optional    => false
  
     input :lv_name,
           :prompt      => "Logical Volume Name",

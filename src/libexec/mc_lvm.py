@@ -16,9 +16,9 @@ if __name__ == '__main__':
     log = logger.setup('main', verbose=False, quiet=True)
     request = mc.request()
     try:
-        vg_name = request['data']['vg_name']
-    except KeyError:
-        mc.fail("Missing input vg_name", 2)
+        vg_name = config.get('LVM', 'lv_def_vg_name')
+    except error.SpokeError:
+        mc.fail("Failed to retrieve lv_def_vg_name value from config", 2)
 
     if request['action'] == 'create':
         lv_name = request['data']['lv_name']
