@@ -271,9 +271,7 @@ class SpokeHostUUID(SpokeLDAP):
             raise error.InputError, msg
         dn = self.next_uuid_dn
         filter = '%s=*' % self.next_uuid_attr
-        
-        result = self._get_object(dn, 0, filter, self.retrieve_attr, 
-                                  attrs_only=True)
+        result = self._get_object(dn, 0, filter, self.retrieve_attr)
         if result['data'] == []:
             msg = "Cannot locate a UUID; maybe you need to run create?"
             raise error.NotFound(msg)

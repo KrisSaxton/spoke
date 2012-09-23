@@ -75,6 +75,12 @@ action "create", :description => "Create a virtual machine" do
           :maxlength   => 20,
           :optional    => false 
 
+    input :install,
+          :prompt      => "Install",
+          :description => "Whether or not to install an OS on the vm",
+          :type        => :boolean,
+          :optional    => true
+          
     input :extra_opts,
           :prompt      => "Extra Options",
           :description => "Extra options to pass to the hypervisor",
