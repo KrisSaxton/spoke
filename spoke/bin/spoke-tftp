@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -96,7 +96,7 @@ Examples:
     if options.tftp:
         try:
             tftproot = conf.get("TFTP", "tftp_root")
-            from tftp import SpokeTFTP
+            from spoke.lib.tftp import SpokeTFTP
             tftp = SpokeTFTP(tftproot)  
             if options.search:
                 if filename is None and mac is not None:

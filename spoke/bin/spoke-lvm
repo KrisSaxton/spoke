@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -84,7 +84,7 @@ Examples:
          
     try:
         if options.lvm:
-            from lvm import SpokeLVM
+            from spoke.lib.lvm import SpokeLVM
             lv = SpokeLVM(vg_name)                
             if options.search:
                 result = lv.get(lv_name)

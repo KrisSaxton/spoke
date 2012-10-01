@@ -1,12 +1,12 @@
 """Tests Spoke list.py module"""
+# core modules
 import unittest
-
-import error
-import config
-
-from org import SpokeOrg
-from list import SpokeMailingList
-from list import SpokeMailingListMember
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.list import SpokeMailingList
+from spoke.lib.list import SpokeMailingListMember
 
 class TestSpokeMailingList(unittest.TestCase):
     

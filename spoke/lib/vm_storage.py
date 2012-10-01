@@ -24,10 +24,10 @@ import struct
 import array
 
 # own modules
-import error
-import config
-import common
-import logger
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.common as common
+import spoke.lib.logger as logger
 
 # 3rd party libs
 try:

@@ -20,10 +20,10 @@ TODO - greater use of ValidationError instead of NotFound or AlreadyExists
 import traceback
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 # 3rd party modules
 try:

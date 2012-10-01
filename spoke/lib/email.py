@@ -16,13 +16,13 @@ TODO: With a primary domain attr on the org, only the uid would be needed.
 """
 
 # own modules
-import common
-import error
-import config
-import logger
-from directory import SpokeLDAP
-from user import SpokeUser
-from org import SpokeOrg
+import spoke.lib.common as common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+from spoke.lib.directory import SpokeLDAP
+from spoke.lib.user import SpokeUser
+from spoke.lib.org import SpokeOrg
 
 class SpokeEmail(SpokeLDAP):
     

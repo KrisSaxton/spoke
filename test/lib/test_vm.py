@@ -1,11 +1,12 @@
 """Tests Spoke vm.py module."""
+# core modules
 import re
 import unittest
-
-import error
-import config
-from vm_storage import SpokeVMStorageXen
-from vm_power import SpokeVMPowerXen
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.vm_storage import SpokeVMStorageXen
+from spoke.lib.vm_power import SpokeVMPowerXen
 
 class SpokeVMStorageTest(unittest.TestCase):
 

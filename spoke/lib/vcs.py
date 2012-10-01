@@ -12,12 +12,12 @@ ldap.MOD_ADD = 0
 """
 
 # own modules
-import common
-import error
-import config
-import logger
-from directory import SpokeLDAP
-from user import SpokeUser
+import spoke.lib.common as common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+from spoke.lib.directory import SpokeLDAP
+from spoke.lib.user import SpokeUser
 
 class SpokeSVN(SpokeLDAP):
     

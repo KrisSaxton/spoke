@@ -1,9 +1,10 @@
 """Tests Spoke ip.py module."""
+# core modules
 import unittest
-
-import error
-import config
-from ip import SpokeSubnet
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.ip import SpokeSubnet
 
 class SpokeIPTest(unittest.TestCase):
 

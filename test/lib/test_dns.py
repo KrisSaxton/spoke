@@ -1,18 +1,18 @@
 """Tests Spoke dns.py module."""
+# core modules
 import unittest
-
-import error
-import config
-
-from org import SpokeOrg
-from dns import SpokeDNSZone
-from dns import SpokeDNSNS
-from dns import SpokeDNSSOA
-from dns import SpokeDNSA
-from dns import SpokeDNSCNAME
-from dns import SpokeDNSMX
-from dns import SpokeDNSTXT
-from dns import SpokeDNSPTR
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.dns import SpokeDNSZone
+from spoke.lib.dns import SpokeDNSNS
+from spoke.lib.dns import SpokeDNSSOA
+from spoke.lib.dns import SpokeDNSA
+from spoke.lib.dns import SpokeDNSCNAME
+from spoke.lib.dns import SpokeDNSMX
+from spoke.lib.dns import SpokeDNSTXT
+from spoke.lib.dns import SpokeDNSPTR
 
 class SpokeDNSTest(unittest.TestCase):
     

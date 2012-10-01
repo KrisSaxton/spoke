@@ -6,12 +6,13 @@ None
 Exceptions:
 SpokeError - raised when action fails for unknown reason.
 """
-# own modules
-import error
-
 # core modules
 from xml.dom.minidom import Document
 import StringIO
+
+# own modules
+import spoke.lib.error as error
+
 try:
     import xml.etree.ElementTree as ET # needs python =>2.5
 except:

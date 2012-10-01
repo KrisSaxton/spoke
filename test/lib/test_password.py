@@ -1,12 +1,12 @@
 """Tests Spoke pwd.py module"""
+# core modules
 import unittest
-
-import error
-import config
-
-from org import SpokeOrg
-from user import SpokeUser
-from passwd import SpokePwd
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.user import SpokeUser
+from spoke.lib.passwd import SpokePwd
 
 
 class SpokePasswordTest(unittest.TestCase):

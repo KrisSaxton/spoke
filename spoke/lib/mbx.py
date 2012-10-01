@@ -17,9 +17,9 @@ import imaplib
 import traceback
 
 # own modules
-import error
-import config
-import logger
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
 
 class SpokeMbx():
     

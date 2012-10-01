@@ -7,10 +7,10 @@ import traceback
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+from spoke.lib.error import SpokeError, ConfigError
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -192,7 +192,7 @@ Examples:
     # Perform action
     if options.org:
         try:
-            from org import SpokeOrg
+            from spoke.lib.org import SpokeOrg
             org = SpokeOrg()
             if options.search:
                 result = org.get(org_name)
@@ -205,14 +205,14 @@ Examples:
             log.info(result['msg'])
             if (options.search and result['count'] > 0) or options.create:
                 log.info(result['data'])
-        except error.SpokeError, e:
+        except SpokeError, e:
             log.error(e.msg)
             if e.traceback:
                 log.debug(traceback)
             raise e
     elif options.user:
         try:
-            from user import SpokeUser
+            from spoke.lib.user import SpokeUser
             user = SpokeUser(org_name)
             if options.search:
                 result = user.get(first, last, options.unique)
@@ -223,13 +223,13 @@ Examples:
             log.info(result['msg'])
             if (options.search and result['count'] > 0) or options.create:
                 log.info(result['data'])
-        except error.SpokeError, e:
+        except SpokeError, e:
             log.error(e.msg)
             if e.traceback:
                 log.debug(traceback)
     elif options.mbx:
         try:
-            from mbx import SpokeMbx
+            from spoke.lib.mbx import SpokeMbx
             mailbox = SpokeMbx()
             if options.search:
                 result = mailbox.get(mailbox_name, options.unique)
@@ -237,17 +237,17 @@ Examples:
                 result = mailbox.create(mailbox_name)
             elif options.delete:
                 result = mailbox.delete(mailbox_name)
-            log.info(result['msg'])
-            if (options.search and result['count'] > 0) or options.create:
-                log.info(result['data'])
-        except error.SpokeError, e:
+            log.info(result)
+            #if (options.search and result['count'] > 0) or options.create:
+            #    log.info(result['data'])
+        except SpokeError, e:
             log.error(e.msg)
             if e.traceback:
                 log.debug(traceback)
     
     elif options.password:
         try:
-            from passwd import SpokePwd
+            from spoke.lib.passwd import SpokePwd
             pwd = SpokePwd(org_name, user_id)
             if options.search:
                 result = pwd.get(password)
@@ -258,13 +258,13 @@ Examples:
             elif options.delete:
                 result = pwd.delete()
             log.info(result['msg'])
-        except error.SpokeError, e:
+        except SpokeError, e:
             log.error(e.msg)
             if e.traceback:
                 log.debug(traceback)
     elif options.vcs:
         try:
-            from vcs import SpokeSVN
+            from spoke.lib.vcs import SpokeSVN
             svn = SpokeSVN(org_name, user_id)
             if options.search:
                 result = svn.get(repo=None)
@@ -277,7 +277,7 @@ Examples:
             log.info(result['msg'])
             if (options.search and result['count'] > 0) or options.create or options.modify:
                 log.info(result['data'])
-        except error.SpokeError, e:
+        except SpokeError, e:
             log.error(e.msg)
             if e.traceback:
                 log.debug(traceback)
@@ -287,10 +287,10 @@ Examples:
 if __name__ == '__main__':
     try:
         main()
-    except error.ConfigError, e:
+    except ConfigError, e:
         print e.msg
         sys.exit(e.exit_code)
-    except error.SpokeError, e:
+    except SpokeError, e:
         sys.exit(e.exit_code)
     except Exception, e:
         print '''Sorry, something went wrong, you shouldn't be seeing this:'''

@@ -1,8 +1,9 @@
 "Tests Spoke xml_helper.py module."""
+# core modules
 import unittest
-
-import config
-import xml_helper
+# own modules
+import spoke.lib.config as config
+import spoke.lib.xml_helper as xml_helper
 
 class SpokeXMLTest(unittest.TestCase):
 

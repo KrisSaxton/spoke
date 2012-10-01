@@ -1,9 +1,10 @@
 """Tests Spoke ldap.py module."""
+# core modules
 import unittest
-
-import config
-import error
-import directory
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.directory as directory
 
 class SpokeLDAPTest(unittest.TestCase):
     

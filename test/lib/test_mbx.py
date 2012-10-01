@@ -1,9 +1,10 @@
 """Tests Spoke mbx.py module."""
+# core modules
 import unittest
-
-import error
-import config
-from mbx import SpokeMbx
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.mbx import SpokeMbx
 
 class SpokeMbxTest(unittest.TestCase):
 

@@ -1,17 +1,17 @@
 """Tests Spoke dhcp.py module.
 TODO match tests to full results object instead of just result['data']
 TODO match delete tests to results object instead of True/False."""
-
+# core modules
 import unittest
-
-import error
-import config
-from dhcp import SpokeDHCPServer
-from dhcp import SpokeDHCPService
-from dhcp import SpokeDHCPSubnet
-from dhcp import SpokeDHCPGroup
-from dhcp import SpokeDHCPHost
-from dhcp import SpokeDHCPAttr
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.dhcp import SpokeDHCPServer
+from spoke.lib.dhcp import SpokeDHCPService
+from spoke.lib.dhcp import SpokeDHCPSubnet
+from spoke.lib.dhcp import SpokeDHCPGroup
+from spoke.lib.dhcp import SpokeDHCPHost
+from spoke.lib.dhcp import SpokeDHCPAttr
 
 class SpokeDHCPTest(unittest.TestCase):
     

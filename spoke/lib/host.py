@@ -18,12 +18,12 @@ ldap.MOD_ADD = 0
 import ConfigParser
 
 # own modules
-import error
-import config
-import common
-import logger
-from directory import SpokeLDAP
-from org import SpokeOrg
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.common as common
+import spoke.lib.logger as logger
+from spoke.lib.directory import SpokeLDAP
+from spoke.lib.org import SpokeOrg
 
 class SpokeHost(SpokeLDAP):
     
@@ -271,7 +271,7 @@ class SpokeHostUUID(SpokeLDAP):
             raise error.InputError, msg
         dn = self.next_uuid_dn
         filter = '%s=*' % self.next_uuid_attr
-        result = self._get_object(dn, 0, filter, self.retrieve_attr)
+        result = self._get_object(dn, 0, filter, self.retrieve_attr, attrs_only=True)
         if result['data'] == []:
             msg = "Cannot locate a UUID; maybe you need to run create?"
             raise error.NotFound(msg)

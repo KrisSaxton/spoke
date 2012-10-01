@@ -1,12 +1,11 @@
 """Tests tftp.py module."""
-
+# core modules
 import os
 import unittest
-
-import error
-import config
-
-from tftp import SpokeTFTP
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.tftp import SpokeTFTP
 
 class SpokeTFTPTest(unittest.TestCase):
     

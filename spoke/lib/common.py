@@ -11,7 +11,7 @@ import re
 import string
 
 # own modules
-import error
+import spoke.lib.error as error
 
 version = '1.0'
 
@@ -25,7 +25,7 @@ def is_number(string):
 def is_shell_safe(string):
     """Ensure input contains no dangerous characters."""
     string = str(string)
-    pattern = re.compile('^[-_A-Za-z0-9 ]+$')
+    pattern = re.compile('^[-_A-Za-z0-9 \.]+$')
     valid = pattern.match(string)
     if not valid:
         msg = '%s contains illegal characters' % string

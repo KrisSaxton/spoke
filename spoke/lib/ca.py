@@ -24,10 +24,10 @@ import hashlib
 import os.path
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 # 3rd party modules
 try:

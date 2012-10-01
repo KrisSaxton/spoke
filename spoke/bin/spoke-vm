@@ -7,10 +7,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -133,10 +133,10 @@ Examples:
     try: 
         if options.vmstore:
             if vm_family == "xen" or vm_family == "test":
-                from vm_storage import SpokeVMStorageXen
+                from spoke.lib.vm_storage import SpokeVMStorageXen
                 vms = SpokeVMStorageXen(hv_uri)
             elif vm_family == "kvm":
-                from vm_storage import SpokeVMStorageKvm
+                from spoke.lib.vm_storage import SpokeVMStorageKvm
                 vms = SpokeVMStorageKvm(hv_uri)
             
             if options.search:
@@ -156,10 +156,10 @@ Examples:
         # on the module which parsed the config and worked out the correct 
         # class to use based on the uri, returning a connection object.
             if vm_family == "xen" or vm_family == "test":
-                from vm_power import SpokeVMPowerXen
+                from spoke.lib.vm_power import SpokeVMPowerXen
                 vmp = SpokeVMPowerXen(hv_uri, vm_name)
             elif vm_family == "kvm":
-                from vm_power import SpokeVMPowerKvm
+                from spoke.lib.vm_power import SpokeVMPowerKvm
                 vmp = SpokeVMPowerKvm(hv_uri, vm_name)
             
             if options.search:

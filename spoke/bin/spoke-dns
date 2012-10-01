@@ -5,10 +5,10 @@ import sys
 
 from optparse import OptionParser, OptionGroup
 
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -173,7 +173,7 @@ Examples:
     # Perform action
     try:
         if options.zone:
-            from dns import SpokeDNSZone
+            from spoke.lib.dns import SpokeDNSZone
             zone = SpokeDNSZone(org, zone)
             if options.search:
                 result = zone.get()
@@ -183,7 +183,7 @@ Examples:
                 result = zone.delete()
         elif options.soa:
             type = 'SOA'
-            from dns import SpokeDNSSOA
+            from spoke.lib.dns import SpokeDNSSOA
             soa = SpokeDNSSOA(org, zone)
             if options.search:
                 result = soa.get(type)
@@ -197,7 +197,7 @@ Examples:
                 result = soa.delete(type)
         elif options.ns:
             type = 'NS'
-            from dns import SpokeDNSNS
+            from spoke.lib.dns import SpokeDNSNS
             nameserver = SpokeDNSNS(org, zone)
             if options.search:
                 result = nameserver.get(type, ns)
@@ -208,7 +208,7 @@ Examples:
         elif options.mx:
             type = 'MX'
             entry = priority + ' ' + hostname
-            from dns import SpokeDNSMX
+            from spoke.lib.dns import SpokeDNSMX
             mx = SpokeDNSMX(org, zone)
             if options.search:
                 result = mx.get(type, entry)
@@ -219,7 +219,7 @@ Examples:
         elif options.a:
             type = 'A'
             entry = [rdn,ip]
-            from dns import SpokeDNSA
+            from spoke.lib.dns import SpokeDNSA
             a = SpokeDNSA(org, zone)
             if options.search:
                 result = a.get(type, entry)
@@ -230,7 +230,7 @@ Examples:
         elif options.cname:
             type = 'CNAME'
             entry = [rdn, hostname]
-            from dns import SpokeDNSCNAME
+            from spoke.lib.dns import SpokeDNSCNAME
             cname = SpokeDNSCNAME(org, zone)
             if options.search:
                 result = cname.get(type, entry)
@@ -240,7 +240,7 @@ Examples:
                 result = cname.delete(type, rdn)
         elif options.txt:
             type = 'TXT'
-            from dns import SpokeDNSTXT
+            from spoke.lib.dns import SpokeDNSTXT
             txt = SpokeDNSTXT(org, zone)
             if options.search:
                 result = txt.get(type, text)
@@ -251,7 +251,7 @@ Examples:
         elif options.ptr:
             type = 'PTR'
             entry = [ip, rdn]
-            from dns import SpokeDNSPTR
+            from spoke.lib.dns import SpokeDNSPTR
             ptr = SpokeDNSPTR(org, zone)
             if options.search:
                 result = ptr.get(type, entry)

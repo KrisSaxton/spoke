@@ -1,11 +1,12 @@
 """Tests host.py module."""
+# core modules
 import unittest
-
-import error
-import config
-from org import SpokeOrg
-from host import SpokeHost
-from host import SpokeHostUUID
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.host import SpokeHost
+from spoke.lib.host import SpokeHostUUID
 
 class SpokeHostTest(unittest.TestCase):
     
@@ -44,9 +45,9 @@ class SpokeHostTest(unittest.TestCase):
         self.host_storage_layout_attr = self.config.get('HOST', 
                                                     'host_storage_layout_attr')
         self.host_type_attr = self.config.get('HOST', 'host_type_attr')
-        self.next_uuid_attr = self.config.get('ATTR_MAP', 'next_uuid_attr')
-        self.next_uuid_dn = self.config.get('ATTR_MAP', 'next_uuid_dn')
-        self.next_uuid_start = self.config.get('ATTR_MAP', 'next_uuid_start')
+        self.next_uuid_attr = self.config.get('UUID', 'next_uuid_attr')
+        self.next_uuid_dn = self.config.get('UUID', 'next_uuid_dn')
+        self.next_uuid_start = self.config.get('UUID', 'next_uuid_start')
         
         self.host_name = 'testhost'
         self.host_uuid = '1'
@@ -311,21 +312,21 @@ class SpokeHostTest(unittest.TestCase):
                           self.host_extra_opts)
         
     def test_create_host_with_unkown_storage_layout(self):
-        """Create a host with an unknown storage layout; raise UnknownLayout."""
+        """Create a host with an unknown storage layout; raise InputError."""
         host = SpokeHost(self.org_name)
         host_name = 'validhost'
         host_storage_layout = 'supermagicsan'
-        self.assertRaises(error.UnknownLayout, host.create, host_name, 
+        self.assertRaises(error.InputError, host.create, host_name, 
                           self.host_uuid, self.host_mem, self.host_cpu,  
                           self.host_family, self.host_type, host_storage_layout, 
                           self.host_network_layout, self.host_extra_opts)
         
     def test_create_host_with_unkown_network_layout(self):
-        """Create a host with an unknown network layout; raise UnknownLayout."""
+        """Create a host with an unknown network layout; raise InputError."""
         host = SpokeHost(self.org_name)
         host_name = 'validhost'
         host_network_layout = 'infiniband'
-        self.assertRaises(error.UnknownLayout, host.create, host_name, 
+        self.assertRaises(error.InputError, host.create, host_name, 
                           self.host_uuid, self.host_mem, self.host_cpu,  
                           self.host_family, self.host_type, 
                           self.host_storage_layout, host_network_layout,  

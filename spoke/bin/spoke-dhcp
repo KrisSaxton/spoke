@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -173,8 +173,8 @@ Examples:
     # Perform action
     try:
         if options.reservation:
-            from dhcp import SpokeDHCPHost
-            from dhcp import SpokeDHCPAttr
+            from spoke.lib.dhcp import SpokeDHCPHost
+            from spoke.lib.dhcp import SpokeDHCPAttr
             host = SpokeDHCPHost(dhcp_server, dhcp_group)
             if options.search:
                 result = host.get(host_name)
@@ -191,7 +191,7 @@ Examples:
             elif options.delete:
                 result = host.delete(host_name)  
         elif options.server:
-            from dhcp import SpokeDHCPServer
+            from spoke.lib.dhcp import SpokeDHCPServer
             server = SpokeDHCPServer()
             if options.search:
                 result = server.get(dhcp_server)
@@ -202,7 +202,7 @@ Examples:
             else:
                 parser.error('Unknown option; please specify one of: -CSMD')
         elif options.service:
-            from dhcp import SpokeDHCPService
+            from spoke.lib.dhcp import SpokeDHCPService
             service = SpokeDHCPService()
             if options.search:
                 result = service.get(dhcp_server)
@@ -213,7 +213,7 @@ Examples:
             else:
                 parser.error('Unknown option; please specify one of: -CSMD')
         elif options.subnet:
-            from dhcp import SpokeDHCPSubnet
+            from spoke.lib.dhcp import SpokeDHCPSubnet
             sub = SpokeDHCPSubnet(dhcp_server)
             if options.search:
                 result = sub.get(subnet)
@@ -223,7 +223,7 @@ Examples:
             elif options.delete:
                 result = sub.delete(subnet)
         elif options.group:
-            from dhcp import SpokeDHCPGroup
+            from spoke.lib.dhcp import SpokeDHCPGroup
             group = SpokeDHCPGroup(dhcp_server)
             if options.search:
                 result = group.get(group_name)
@@ -232,7 +232,7 @@ Examples:
             elif options.delete:
                 result = group.delete(group_name)
         elif options.host:
-            from dhcp import SpokeDHCPHost
+            from spoke.lib.dhcp import SpokeDHCPHost
             host = SpokeDHCPHost(dhcp_server, group_name)
             if options.search:
                 result = host.get(host_name)
@@ -241,7 +241,7 @@ Examples:
             elif options.delete:
                 result = host.delete(host_name) 
         elif options.attribute:
-            from dhcp import SpokeDHCPAttr
+            from spoke.lib.dhcp import SpokeDHCPAttr
             attribute = SpokeDHCPAttr(dhcp_server, group=options.attrgroup, 
                                       host=options.attrhost)
             if options.search:

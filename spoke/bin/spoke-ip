@@ -9,10 +9,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -107,7 +107,7 @@ Examples:
             (network, mask) = args
     
     try:
-        from ip import SpokeSubnet
+        from spoke.lib.ip import SpokeSubnet
         subnet = SpokeSubnet(ip=network, mask=mask, dc=options.dc)
         if options.search:
             result = subnet.get()

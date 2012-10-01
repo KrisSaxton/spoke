@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -156,7 +156,7 @@ Examples:
     # Perform action
     try:
         if options.account:
-            from email import SpokeEmailAccount
+            from spoke.lib.email import SpokeEmailAccount
             acc = SpokeEmailAccount(org_name, user_id)
             if options.search:
                 result = acc.get(email_addr)
@@ -165,7 +165,7 @@ Examples:
             elif options.delete:
                 result = acc.delete(email_addr)
         elif options.address:
-            from email import SpokeEmailAddress
+            from spoke.lib.email import SpokeEmailAddress
             addr = SpokeEmailAddress(org_name, user_id)
             if options.search:
                 result = addr.get(email_addr)
@@ -174,7 +174,7 @@ Examples:
             elif options.delete:
                 result = addr.delete(email_addr)
         elif options.domain:
-            from email import SpokeEmailDomain
+            from spoke.lib.email import SpokeEmailDomain
             domain = SpokeEmailDomain(org_name)
             if options.search:
                 result = domain.get(email_dom)
@@ -183,7 +183,7 @@ Examples:
             elif options.delete:
                 result = domain.delete(email_dom)
         elif options.list:
-            from list import SpokeMailingList
+            from spoke.lib.list import SpokeMailingList
             list = SpokeMailingList(org_name)
             if options.search:
                 result = list.get(list_address=None)
@@ -196,7 +196,7 @@ Examples:
             elif options.delete:
                 result = list.delete(list_address)
         elif options.member:
-            from list import SpokeMailingListMember
+            from spoke.lib.list import SpokeMailingListMember
             member = SpokeMailingListMember(org_name, list_address)
             if options.search:
                 result = member.get(member_address=None)

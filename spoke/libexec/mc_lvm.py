@@ -2,11 +2,11 @@
 # core modules
 import sys
 # own modules
-import error
-import config
-import logger
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
 import mc_helper as mc
-from lvm import SpokeLVM
+from spoke.lib.lvm import SpokeLVM
 
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 config = config.setup(config_file)

@@ -3,15 +3,14 @@ NB This isn't really a set of unit tests, these are integration tests.
 The tests touch the filesystem, so use with extreme caution
 They require a system with LVM2 support and the lVM2 user land tools
 They also expect a single volume group with at least 1G of free space"""
-
+# core modules
 import sys
 import unittest
 import decimal
-
-import error
-import config
-
-from lvm import SpokeLVM
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.lvm import SpokeLVM
 
 # This volume group must exist, be empty and have at least 1G of free space
 # before running these tests

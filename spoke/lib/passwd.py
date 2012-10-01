@@ -16,11 +16,11 @@ from base64 import encodestring as encode
 from base64 import decodestring as decode
 
 # own modules
-import error
-import config
-import logger
-from directory import SpokeLDAP
-from user import SpokeUser
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+from spoke.lib.directory import SpokeLDAP
+from spoke.lib.user import SpokeUser
 
 class SpokePwd(SpokeLDAP):
     

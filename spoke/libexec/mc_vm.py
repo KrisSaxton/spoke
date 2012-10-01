@@ -2,14 +2,14 @@
 # core modules
 import sys
 # own modules
-import error
-import config
-import logger
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
 import mc_helper as mc
 
 # TODO This only works for Xen until we can hide VM Storage types in the vm_storage module
 # TODO Implement access to vm power via vm host modify (e.g. vm.modify(vm_name, power=on).
-from vm_storage import SpokeVMStorageXen
+from spoke.lib.vm_storage import SpokeVMStorageXen
 
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 config = config.setup(config_file)

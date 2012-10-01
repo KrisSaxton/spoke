@@ -3,15 +3,16 @@ TODO: Test that '.'s in uids get subbed for '^' in Cyrus mailbox names
 TODO: Test that user's org has domain entry for email address being added
 TODO: Test that email address doesn't exist anywhere in the org
 """
+# core modules
 import unittest
-
-import error
-import config
-from org import SpokeOrg
-from user import SpokeUser
-from email import SpokeEmailAccount
-from email import SpokeEmailDomain
-from email import SpokeEmailAddress
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.user import SpokeUser
+from spoke.lib.email import SpokeEmailAccount
+from spoke.lib.email import SpokeEmailDomain
+from spoke.lib.email import SpokeEmailAddress
 
 
 class SpokeEmailTest(unittest.TestCase):

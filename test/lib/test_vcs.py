@@ -1,12 +1,12 @@
 """Tests Spoke vcs.py module"""
+# core modules
 import unittest
-
-import error
-import config
-
-from org import SpokeOrg
-from user import SpokeUser
-from vcs import SpokeSVN
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.user import SpokeUser
+from spoke.lib.vcs import SpokeSVN
 
 class SpokeVCSTest(unittest.TestCase):
     
@@ -60,14 +60,12 @@ class SpokeVCSTest(unittest.TestCase):
         people = '%s=%s' % (self.container_attr, self.user_container)
         uid = '%s=%s' % (self.user_key, self.user_id)
         dn = '%s,%s,%s,%s' % (uid, people, org, self.base_dn)
-        dn_info = {self.svn_enable_attr: ['TRUE'],
-                   self.svn_repo_attr: [self.svn_repo_name, repo]}
+        dn_info = {self.svn_repo_attr: [self.svn_repo_name, repo]}
         expected_result = [(dn, dn_info)]
         svn = SpokeSVN(self.org_name, self.user_id)
         result = svn.create(repo)['data'][0]
         attrs = result[1]
         svn_attrs = {}
-        svn_attrs[self.svn_enable_attr] = attrs[self.svn_enable_attr]
         svn_attrs[self.svn_repo_attr] = attrs[self.svn_repo_attr]
         svn_result = [(result[0], svn_attrs)]
         self.assertEqual(svn_result, expected_result)

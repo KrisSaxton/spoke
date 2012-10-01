@@ -3,10 +3,10 @@
 import sys
 
 # own modules
-import config
-import logger
+import spoke.lib.config as config
+import spoke.lib.logger as logger
 import mc_helper as mc
-from ip import SpokeSubnet
+from spoke.lib.ip import SpokeSubnet
 
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 config = config.setup(config_file)

@@ -1,10 +1,11 @@
 """Tests user.py module."""
+# core modules
 import unittest
-
-import error
-import config
-from org import SpokeOrg
-from user import SpokeUser
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.org import SpokeOrg
+from spoke.lib.user import SpokeUser
 
 class SpokeUserTest(unittest.TestCase):
     

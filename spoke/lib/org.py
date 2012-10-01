@@ -9,10 +9,10 @@ NotFound - raised when an operation fails to find an expected object.
 """
 
 # own modules
-import error
-import config
-import logger
-from directory import SpokeLDAP
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+from spoke.lib.directory import SpokeLDAP
 
 class SpokeOrg(SpokeLDAP):
     

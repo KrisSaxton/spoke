@@ -10,9 +10,11 @@ setup - reads a configuration file and returns a SpokeConfig object
 Exceptions:
 ConfigError - raised when config file missing or empty during initial call.
 """
-
+# core modules
 import ConfigParser
-import error
+
+# own modules
+import spoke.lib.error as error
 
 gConfig = None
 

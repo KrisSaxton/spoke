@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -132,7 +132,7 @@ Examples:
     # Perform action
     if options.authority:
         try:
-            from ca import SpokeCA
+            from spoke.lib.ca import SpokeCA
             CA = SpokeCA(ca_name)             
             if options.search:
                 result = CA.get()   
@@ -153,7 +153,7 @@ Examples:
         
     elif options.request:
         try:
-            from ca import SpokeCSR
+            from spoke.lib.ca import SpokeCSR
             CSR = SpokeCSR(cn, requester=requester)
             if options.search:
                 result = CSR.get()   
@@ -173,7 +173,7 @@ Examples:
             raise e
     elif options.hostcert:
         try:
-            from ca import SpokeHostCert
+            from spoke.lib.ca import SpokeHostCert
             CERT = SpokeHostCert(cn, requester=requester)
             if options.search:
                 result = CERT.get()   

@@ -12,13 +12,13 @@ SearchError - raised to indicate unwanted search results were returned.
 """
 
 # own modules
-import error
-import config
-import logger
-import common
-import ip_helper
-from directory import SpokeLDAP
-from kv import SpokeKV
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
+import spoke.lib.ip_helper as ip_helper
+from spoke.lib.directory import SpokeLDAP
+from spoke.lib.kv import SpokeKV
 
 class SpokeSubnet(SpokeKV):
     

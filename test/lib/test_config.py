@@ -1,9 +1,10 @@
 """Tests Spoke config.py module"""
+# core modules
 import os
 import unittest
-
-import error
-import config
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
 
 class SpokeConfigTest(unittest.TestCase):
     

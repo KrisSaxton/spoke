@@ -1,10 +1,10 @@
 """Tests Spoke logger.py module."""
-
+# core modules
 import os
 import unittest
-
-import config
-import logger
+# own modules
+import spoke.lib.config as config
+import spoke.lib.logger as logger
 
 class SpokeLoggerTest(unittest.TestCase):
     """A Class for testing the Spoke logger.py module."""

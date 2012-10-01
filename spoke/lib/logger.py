@@ -13,8 +13,8 @@ import os
 import logging.handlers
 
 # own modules
-import error
-import config
+import spoke.lib.error as error
+import spoke.lib.config as config
 
 gLog = None
 
@@ -35,21 +35,21 @@ class SpokeLogger:
 
     def __init__(self):
         """Get logging config from config object or defaults."""
-        try:
-            self.config = config.setup()
-        except error.ConfigError:
-            self.config = None
         self.log_levels = {'debug': logging.DEBUG,
                      'info': logging.INFO,
                      'warning': logging.WARN,
                      'error': logging.ERROR,
                      'critical': logging.CRITICAL}
-        self.log_filename = self.config.get('LOGGING', 'log_filename', '/tmp/spoke.log')
-        self.log_level = self.config.get('LOGGING', 'log_level', 'info')
-        max_size = 1024*1024*5 # 5MBytes
-        self.log_max_size = self.config.get('LOGGING', 'log_max_size', max_size)
-        self.log_keep = self.config.get('LOGGING', 'log_keep', 5)
-        self.log_dir = os.path.split(self.log_filename)[0]
+        try:
+            self.config = config.setup()
+            self.log_filename = self.config.get('LOGGING', 'log_filename', '/tmp/spoke.log')
+            self.log_level = self.config.get('LOGGING', 'log_level', 'info')
+            max_size = 1024*1024*5 # 5MBytes
+            self.log_max_size = self.config.get('LOGGING', 'log_max_size', max_size)
+            self.log_keep = self.config.get('LOGGING', 'log_keep', 5)
+            self.log_dir = os.path.split(self.log_filename)[0]
+        except error.ConfigError:
+            self.config = None
                 
     def setup(self, name, verbose=False, quiet=False):
         """Setup logging and return a logging object"""

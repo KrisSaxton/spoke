@@ -6,10 +6,10 @@ import sys
 from optparse import OptionParser, OptionGroup
 
 # own modules
-import error
-import config
-import logger
-import common
+import spoke.lib.error as error
+import spoke.lib.config as config
+import spoke.lib.logger as logger
+import spoke.lib.common as common
 
 version = common.version
 
@@ -80,8 +80,8 @@ Examples:
         
     log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
     
-    if not (options.create or options.search or options.delete):
-        parser.error("Please specify one of -CSMD")
+    if not (options.create or options.search or options.delete or options.reserve):
+        parser.error("Please specify one of -CSRD")
     
     # Host commands
     if options.host:
@@ -111,7 +111,7 @@ Examples:
             parser.error('Unknown option; please specify one of: -SCMD')
      
         try:
-            from host import SpokeHost
+            from spoke.lib.host import SpokeHost
             host = SpokeHost(org_name)     
             if options.search:
                 result = host.get(host_name)
@@ -147,7 +147,7 @@ Examples:
             parser.error('Unknown option; please specify one of: -SCMD')
          
         try:       
-            from host import SpokeHostUUID
+            from spoke.lib.host import SpokeHostUUID
             uuid = SpokeHostUUID()
             
             if options.search:

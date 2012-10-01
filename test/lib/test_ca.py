@@ -1,10 +1,11 @@
 """Tests Spoke ca.py module."""
+# core modules
 import unittest
 import os.path
-
-import error
-import config
-from ca import SpokeCA, SpokeCSR, SpokeCACert, SpokeHostCert
+# own modules
+import spoke.lib.error as error
+import spoke.lib.config as config
+from spoke.lib.ca import SpokeCA, SpokeCSR, SpokeCACert, SpokeHostCert
 
 class SpokeCATest(unittest.TestCase):
 
