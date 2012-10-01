@@ -5,7 +5,7 @@ import sys
 import spoke.lib.error as error
 import spoke.lib.config as config
 import spoke.lib.logger as logger
-import mc_helper as mc
+import spoke.lib.mc_helper as mc
 
 # TODO This only works for Xen until we can hide VM Storage types in the vm_storage module
 from spoke.lib.vm_power import SpokeVMPowerXen

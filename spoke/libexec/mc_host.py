@@ -5,7 +5,7 @@ import sys
 import spoke.lib.error as error
 import spoke.lib.config as config
 import spoke.lib.logger as logger
-import mc_helper as mc
+import spoke.lib.mc_helper as mc
 from spoke.lib.host import SpokeHost
 
 config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
