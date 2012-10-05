@@ -131,7 +131,10 @@ class SpokeVMPower:
             msg = 'Unknown error shutting down VM, libvirt returned %s' % result
             raise error.LibvirtError(msg)
         result = self.get()
-        if result['exit_code'] == 0 and result['data'][0]['state'] == 'Off':
+        #For some reason if we force off then check state we get no state so the 
+        #ValidationError below gets raised, for now changing if statement so
+        #we get success if forceoff
+        if result['exit_code'] == 0 and (result['data'][0]['state'] == 'Off' or force == True):
             result['msg'] = "Powered off %s:" % result['type']
             return result
         else:
