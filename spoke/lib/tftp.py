@@ -22,6 +22,8 @@ import spoke.lib.logger as logger
 
 
 class SpokeTFTP:
+
+
     
     def __init__(self, tftp_root=None):
         self.config = config.setup()
@@ -39,6 +41,7 @@ class SpokeTFTP:
         if not os.path.isdir(self.tftp_dir):
             msg = "TFTP config directory %s not found" % self.tftp_dir
             raise error.NotFound, msg
+        self.run_id=6738
         
     def _validate_target(self, target):
         target = common.validate_filename(target)
@@ -51,15 +54,28 @@ class SpokeTFTP:
     def create(self, mac, target):
         """Creates a symlink mac --> config"""
         mac = common.validate_mac(mac)
-        mac_file = string.replace(mac, ":", "-") #Format for use on tftp filesystem
+        mac = string.replace(mac, ":", "-") #Format for use on tftp filesystem
         target = self._validate_target(target)
-        src = target
-        dst = self.tftp_dir + self.tftp_prefix + mac_file
-        #Check that nothing exists at that location before trying to make a link                
+        config = target
+        config_file = open(config)                
+        dst = self.tftp_dir + self.tftp_prefix + mac
+        #Check that at least one line has kernel arguments
+        for line in config_file:
+            if line.contains('append'):
+                kernel_arg_lines += 1
+        if kernel_arg_lines < 1:
+            msg = "No kernel arguments in specified config. Should be more than one line starting append."
+            raise error.InputError, msg
+        #Check that nothing exists at that mac location before trying to make a file                
         if not os.path.lexists(dst):
-            self.log.debug('Creating link between mac %s and target %s' % \
-                           (mac, target))
-            os.symlink(src, dst)
+            mac_file = open(dst, w)
+                #Loop file adding run_id at correct line
+                for line in config_file:
+                    if line.contains('append'):
+                        mac_file.write( line.append(" run_id=" + str(run_id)) )
+                    else:
+                        mac_file.write(line)
+            mac_file.close
         else:
             msg = "Link for mac %s already exists, can't create" % mac
             raise error.AlreadyExists, msg
@@ -87,14 +103,15 @@ class SpokeTFTP:
             item = {}
             for file in file_list:
                 item_path = self.tftp_dir + file
-                
-                if os.path.islink(item_path):
-                    link_target = os.path.basename(os.path.realpath(item_path))
+                mac_file = os.path.basename(itempath)
+                mac_file = mac_file[3:]
+                if common.validate_mac(mac_file) && os.path.isfile(item_path):
+                    macs = mac_file
                     try:
-                        item[link_target]
+                        item[macs]
                     except KeyError:
-                        item[link_target] = [] # Initialise dict if not exist
-                    item[link_target].append(file)
+                        item[macs] = [] # Initialise dict if not exist
+                    item[macs].append(file)
                 elif os.path.isfile(item_path):
                     try:
                         item[file]
@@ -103,7 +120,7 @@ class SpokeTFTP:
                 else:
                     self.log.debug('Unknown file type %s, skipping' % file)
         elif mac is not None and target is None:
-            # We're looking for a mac address's target tftp config file
+            # We're looking for a mac address
             mac = common.validate_mac(mac)
             mac_file = string.replace(mac, ":", "-") #Format for use on filesystem
             mac_link_name = self.tftp_prefix + mac_file           
