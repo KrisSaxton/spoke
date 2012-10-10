@@ -125,47 +125,20 @@ class SpokeTFTP:
             mac_file = string.replace(mac, ":", "-") #Format for use on filesystem
             mac_link_name = self.tftp_prefix + mac_file           
             mac_link = self.tftp_dir + mac_link_name
-            self.log.debug('Searching for target for mac link %s' % mac_link)
-            #check if the symlink exists for that mac and return target
-            if not os.path.islink(mac_link):
+
+            if not os.path.isfile(mac_link):
                 result = common.process_results(data, self.type)
                 self.log.debug('Result: %s' % result)
                 return result
             else:
                 item = {}
-                target = os.path.basename(os.path.realpath(mac_link))
-                item[mac_link_name] = [target]
+                item[mac_link_name] = ["Present"]
         elif target is not None and mac is None:
-            target = self._validate_target(target)
-            # We're looking for all mac address associated with the target file
+            #Now we just want to check if config exists, no longer maintaining list of links
             target = common.validate_filename(target)
-            self.log.debug('Searching for links to target %s' % target)          
-            link_list = os.listdir(self.tftp_dir)
-            #count = 0
-            mac_list = []
-            for item in link_list:
-                item_path = self.tftp_dir + item
-                #this regex checks for the mac address with 01 on beginning
-                pattern = re.compile('^([0-9a-fA-F]{2}[:\-]){6}[0-9a-fA-F]{2}$')
-                valid_mac = pattern.match(item)
-                #if the item is a symlink and a long mac addr strip the 01
-                #and print which config it points to.
-                if (os.path.islink(item_path)) and (valid_mac):
-                    #mac = item[3:]
-                    config = os.path.basename(os.path.realpath(item_path))
-                    #check that this association points to the target we want
-                    if (config == target):
-                        mac_list.append(item)
-                        #count += 1          
-            if len(mac_list) == 0:
-                msg = "Target %s has no associated MACs" % target
-                self.log.debug(msg)
-                result = common.process_results(data, self.type)
-                self.log.debug('Result: %s' % result)
-                return result
-            #else:
-            item = {}
-            item[target] = mac_list  
+            target = self._validate_target(target)
+
+            item[target] = "Found"
         else:
             msg = "please specify nothing, mac or target (not mac and target)."
             raise error.InputError, msg
