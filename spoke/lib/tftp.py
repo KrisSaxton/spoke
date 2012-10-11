@@ -56,25 +56,29 @@ class SpokeTFTP:
         mac = common.validate_mac(mac)
         mac = string.replace(mac, ":", "-") #Format for use on tftp filesystem
         target = self._validate_target(target)
-        config = target
+        config = self.tftp_dir + target
         config_file = open(config)                
         dst = self.tftp_dir + self.tftp_prefix + mac
         #Check that at least one line has kernel arguments
+        kernel_arg_lines = 0
         for line in config_file:
-            if line.contains('append'):
+            if 'append' in line:
                 kernel_arg_lines += 1
         if kernel_arg_lines < 1:
             msg = "No kernel arguments in specified config. Should be more than one line starting append."
             raise error.InputError, msg
+        config_file.close
+        config_file = open(config)
         #Check that nothing exists at that mac location before trying to make a file                
         if not os.path.lexists(dst):
-            mac_file = open(dst, w)
-                #Loop file adding run_id at correct line
-                for line in config_file:
-                    if line.contains('append'):
-                        mac_file.write( line.append(" run_id=" + str(run_id)) )
-                    else:
-                        mac_file.write(line)
+            mac_file = open(dst, 'w')
+            #Loop file adding run_id at correct line
+            for line in config_file:
+                if 'append' in line:
+                    line = line.rstrip('\n')
+                    mac_file.write( line + " run_id=" + str(self.run_id) + "\n")
+                else:
+                    mac_file.write(line)
             mac_file.close
         else:
             msg = "Link for mac %s already exists, can't create" % mac
@@ -103,9 +107,11 @@ class SpokeTFTP:
             item = {}
             for file in file_list:
                 item_path = self.tftp_dir + file
-                mac_file = os.path.basename(itempath)
+                mac_file = os.path.basename(item_path)
                 mac_file = mac_file[3:]
-                if common.validate_mac(mac_file) && os.path.isfile(item_path):
+                pattern = re.compile('^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$')
+                valid_mac = pattern.match(mac_file)
+                if valid_mac and os.path.isfile(item_path):
                     macs = mac_file
                     try:
                         item[macs]
@@ -134,6 +140,7 @@ class SpokeTFTP:
                 item = {}
                 item[mac_link_name] = ["Present"]
         elif target is not None and mac is None:
+            item = {}
             #Now we just want to check if config exists, no longer maintaining list of links
             target = common.validate_filename(target)
             target = self._validate_target(target)
