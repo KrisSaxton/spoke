@@ -18,19 +18,22 @@ default_config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 def main():
     usage = """Usage: %prog [options] -T [args]
 
-Manage TFTP server links to control PXE boot behaviour
+Manage TFTP server configs to control PXE boot behaviour
 
 Arguments:        
     MAC         MAC address (e.g. 11:22:33:44:55:66)
     FILENAME    filename of an existing pxe config
                 file in the pxelinux.cfg directory
+    RUN_ID      The run id that is passed in to the
+                pxelinux config to identify install
+                jobs (optional)
 
 Examples:
     spoke-tftp --help
     spoke-tftp -v -S
     spoke-tftp -q -S 11:22:33:44:55:66
     spoke-tftp -c /etc/spoke/spoke.conf -S xendomu.conf
-    spoke-tftp -C 11:22:33:44:55:66 xendomu.conf
+    spoke-tftp -C 11:22:33:44:55:66 xendomu.conf 5874
     spoke-tftp --delete 11:22:33:44:55:66"""
                 
     parser = OptionParser(usage, version=version)
@@ -53,7 +56,7 @@ Examples:
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "TFTP Options",
-        "Usage: spoke-tftp -T [OPTIONS] [MAC] [FILENAME]")
+        "Usage: spoke-tftp -T [OPTIONS] [MAC] [FILENAME] [RUN_ID]")
     parser.add_option_group(group)
     group.add_option('-T', '--tftp', action='store_true',
                           dest='tftp', help="perform an action on a tftp object")
@@ -85,9 +88,13 @@ Examples:
                 filename = thing
                 mac = None
     if options.create:
-        if len(args) != 2:
-            parser.error("Please specify a mac address and a tftp config file")
-        (mac, filename) = args
+        if len(args) < 2:
+            parser.error("Please specify atleast a mac address and a tftp config file")
+        if len(args) == 2:
+            (mac, filename) = args
+            run_id=None
+        elif len(args) == 3:
+            (mac, filename, run_id) = args
     elif options.delete:
         if len(args) != 1:
             parser.error("Please specify a mac address")
@@ -111,8 +118,11 @@ Examples:
                     raise error.InputError, msg
                 if filename is None or filename == "":
                     msg = "Must specify FILENAME with create"
-                    raise error.InputError, msg                                     
-                result = tftp.create(mac, filename)
+                    raise error.InputError, msg                                    
+                if run_id is None or run_id == "": 
+                    result = tftp.create(mac, filename, "none")
+                else:
+                    result = tftp.create(mac, filename, run_id) 
             elif options.delete:
                 if mac is None or mac == "":
                     msg = "Must specify MAC with delete."

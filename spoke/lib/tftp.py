@@ -41,7 +41,6 @@ class SpokeTFTP:
         if not os.path.isdir(self.tftp_dir):
             msg = "TFTP config directory %s not found" % self.tftp_dir
             raise error.NotFound, msg
-        self.run_id=6738
         
     def _validate_target(self, target):
         target = common.validate_filename(target)
@@ -51,7 +50,7 @@ class SpokeTFTP:
             raise error.NotFound, msg
         return target
     
-    def create(self, mac, target):
+    def create(self, mac, target, run_id="none"):
         """Creates a symlink mac --> config"""
         mac = common.validate_mac(mac)
         mac = string.replace(mac, ":", "-") #Format for use on tftp filesystem
@@ -76,7 +75,7 @@ class SpokeTFTP:
             for line in config_file:
                 if 'append' in line:
                     line = line.rstrip('\n')
-                    mac_file.write( line + " run_id=" + str(self.run_id) + "\n")
+                    mac_file.write( line + " run_id=" + str(run_id) + "\n")
                 else:
                     mac_file.write(line)
             mac_file.close
