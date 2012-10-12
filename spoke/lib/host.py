@@ -220,7 +220,7 @@ class SpokeHostUUID(SpokeLDAP):
             raise error.NotFound, msg
         return result
 
-    def create(self, uuid_start=None):
+    def create(self, uuid_start=None, get_mac=False):
         """Create initial UUID object; return True."""
         if uuid_start:
             self.next_uuid_start = uuid_start
@@ -242,12 +242,17 @@ class SpokeHostUUID(SpokeLDAP):
             raise error.AlreadyExists(msg)
         self.log.debug('Adding %s to %s ' % (dn_info, dn))     
         result = self._create_object(dn, dn_info)
-        result['data'] = [int(result['data'][0][1][self.next_uuid_attr][0])]
+        uuid = int(result['data'][0][1][self.next_uuid_attr][0])
+        mac = common.mac_from_uuid(uuid, 0)
+        if get_mac:
+            result['data'] = (uuid, mac)
+        else:
+            result['data'] = [uuid]
         result['msg'] = 'Created UUID:'
         self.log.debug('Result: %s' % result)
         return result
         
-    def get(self):
+    def get(self, get_mac=False):
         """Retrieve the next free UUID object; return UUID as integer."""
         dn = self.next_uuid_dn
         filter = '%s=*' % self.next_uuid_attr
@@ -259,12 +264,17 @@ class SpokeHostUUID(SpokeLDAP):
         if result['data'] == []:
             msg = "Cannot locate a UUID; maybe you need to run create?"
             raise error.NotFound(msg)
-        result['data'] = [int(result['data'][0][1][self.next_uuid_attr][0])]
+        uuid = int(result['data'][0][1][self.next_uuid_attr][0])
+        if get_mac is True:
+            mac = common.mac_from_uuid(uuid, 0)
+            result['data'] = (uuid, mac)
+        else:
+            result['data'] = [uuid]
         result['msg'] = 'Found UUID:'
         self.log.debug('Result: %s' % result)
         return result
     
-    def modify(self, increment=1):
+    def modify(self, increment=1, get_mac=False):
         """Increment initial UUID object; return list of UUIDs."""
         if not common.is_number(increment):
             msg = 'increment input must be an Integer'
@@ -288,7 +298,11 @@ class SpokeHostUUID(SpokeLDAP):
         except:
             msg = 'Update of next free UUID to %d failed' % new_uuid
             raise error.IncrementError, msg
-        result['data'] = range(uuid, (new_uuid))
+        mac = common.mac_from_uuid(uuid, 0)
+        if get_mac:
+            result['data'] = (range(uuid, (new_uuid)), mac)
+        else:
+            result['data'] = range(uuid, (new_uuid))
         result['msg'] = "Reserved UUIDs: " + str(result['data'])
         self.log.debug('Result: %s' % result)
         return result
