@@ -120,7 +120,7 @@ Examples:
                     msg = "Must specify FILENAME with create"
                     raise error.InputError, msg                                    
                 if run_id is None or run_id == "": 
-                    result = tftp.create(mac, filename, "none")
+                    result = tftp.create(mac, filename)
                 else:
                     result = tftp.create(mac, filename, run_id) 
             elif options.delete:

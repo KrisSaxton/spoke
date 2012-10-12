@@ -28,7 +28,7 @@ class SpokeTFTP:
     def __init__(self, tftp_root=None):
         self.config = config.setup()
         self.log = logger.setup(__name__)
-        self.type = 'TFTP link'
+        self.type = 'TFTP config'
         if not tftp_root:
             tftp_root = self.config.get('TFTP', 'tftp_root')
         self.tftp_root = common.validate_filename(tftp_root)
@@ -42,45 +42,53 @@ class SpokeTFTP:
             msg = "TFTP config directory %s not found" % self.tftp_dir
             raise error.NotFound, msg
         
-    def _validate_target(self, target):
-        target = common.validate_filename(target)
-        target_full_path = self.tftp_dir + target
-        if not os.path.isfile(target_full_path):
-            msg = 'Target %s does not exist' % target
+    def _validate_template(self, template):
+        template = common.validate_filename(template)
+        template_full_path = self.tftp_dir + template
+        if not os.path.isfile(template_full_path):
+            msg = 'Template %s does not exist' % template
             raise error.NotFound, msg
-        return target
+        if not '.template' in template:
+            msg = 'Template %s must have .template extension' % template
+            raise error.InputError, msg
+        return template
     
-    def create(self, mac, target, run_id="none"):
-        """Creates a symlink mac --> config"""
+    def create(self, mac, template, run_id=None):
+        """Creates a config at mac using template"""
         mac = common.validate_mac(mac)
+        if run_id is not None:
+            if not common.is_integer(run_id):
+                msg = "Run ID must be an integer or not defined"
+                raise error.InputError, msg
         mac = string.replace(mac, ":", "-") #Format for use on tftp filesystem
-        target = self._validate_target(target)
-        config = self.tftp_dir + target
-        config_file = open(config)                
+        template = self._validate_template(template)
+        template_path = self.tftp_dir + template
+        template_file = open(template_path)                
         dst = self.tftp_dir + self.tftp_prefix + mac
         #Check that at least one line has kernel arguments
         kernel_arg_lines = 0
-        for line in config_file:
+        for line in template_file:
             if 'append' in line:
                 kernel_arg_lines += 1
-        if kernel_arg_lines < 1:
-            msg = "No kernel arguments in specified config. Should be more than one line starting append."
+        if kernel_arg_lines < 1 and run_id is not None:
+            msg = "No kernel arguments in specified template. Should be more than one line starting append."
             raise error.InputError, msg
-        config_file.close
-        config_file = open(config)
+        template_file.close
+        template_file = open(template_path)
         #Check that nothing exists at that mac location before trying to make a file                
         if not os.path.lexists(dst):
             mac_file = open(dst, 'w')
             #Loop file adding run_id at correct line
-            for line in config_file:
-                if 'append' in line:
+            for line in template_file:
+                if 'append' in line and run_id:
+                    #remove the line break and add run_id at end of kernel args
                     line = line.rstrip('\n')
                     mac_file.write( line + " run_id=" + str(run_id) + "\n")
                 else:
                     mac_file.write(line)
             mac_file.close
         else:
-            msg = "Link for mac %s already exists, can't create" % mac
+            msg = "Config for mac %s already exists, can't create" % mac
             raise error.AlreadyExists, msg
         result = self.search(mac)
         if result['exit_code'] == 0 and result['count'] == 1:
@@ -91,12 +99,12 @@ class SpokeTFTP:
             raise error.NotFound(msg)
         return result
               
-    def search(self, mac=None, target=None):
+    def search(self, mac=None, template=None):
         data = []
-        if mac is None and target is None:
-        # Give me all targets and all their links
+        if mac is None and template is None:
+            # Give me all macs and all templates
             #read the file system
-            self.log.debug('Searching for all targets and mac under %s' % \
+            self.log.debug('Searching for all templates and macs under %s' % \
                            self.tftp_dir)
             file_list = os.listdir(self.tftp_dir)
             if len(file_list) == 0:
@@ -106,45 +114,50 @@ class SpokeTFTP:
             item = {}
             for file in file_list:
                 item_path = self.tftp_dir + file
-                mac_file = os.path.basename(item_path)
-                mac_file = mac_file[3:]
+                file_name = os.path.basename(item_path)
+                if ".template" in file_name:
+                    valid_template = True 
+                file_name = file_name[3:]
+                #use a regex to see if the file is a mac config
                 pattern = re.compile('^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$')
-                valid_mac = pattern.match(mac_file)
+                valid_mac = pattern.match(file_name)
+                #if it's a mac add to list of macs
                 if valid_mac and os.path.isfile(item_path):
-                    macs = mac_file
+                    macs = file_name
                     try:
-                        item[macs]
+                        item["configs"]
                     except KeyError:
-                        item[macs] = [] # Initialise dict if not exist
-                    item[macs].append(file)
-                elif os.path.isfile(item_path):
+                        item["configs"] = [] # Initialise dict if not exist
+                    item["configs"].append(macs)
+                elif valid_template and os.path.isfile(item_path):
                     try:
-                        item[file]
+                        item["templates"]
                     except KeyError:
-                        item[file] = [] # Initialise dict if not exist
+                        item["templates"] = [] # Initialise dict if not exist
+                    item["templates"].append(file)
                 else:
                     self.log.debug('Unknown file type %s, skipping' % file)
-        elif mac is not None and target is None:
+        elif mac is not None and template is None:
             # We're looking for a mac address
             mac = common.validate_mac(mac)
             mac_file = string.replace(mac, ":", "-") #Format for use on filesystem
-            mac_link_name = self.tftp_prefix + mac_file           
-            mac_link = self.tftp_dir + mac_link_name
+            mac_file_name = self.tftp_prefix + mac_file           
+            mac_link = self.tftp_dir + mac_file_name
 
             if not os.path.isfile(mac_link):
                 result = common.process_results(data, self.type)
                 self.log.debug('Result: %s' % result)
                 return result
             else:
-                item = {}
-                item[mac_link_name] = ["Present"]
-        elif target is not None and mac is None:
-            item = {}
-            #Now we just want to check if config exists, no longer maintaining list of links
-            target = common.validate_filename(target)
-            target = self._validate_target(target)
+                item = [mac_file_name]
+                #item[mac_file_name] = "Found"
+        elif template is not None and mac is None:
 
-            item[target] = "Found"
+            #Now we just want to check if template exists, no longer maintaining list of links
+            template = common.validate_filename(template)
+            template = self._validate_template(template)
+
+            item = [template]
         else:
             msg = "please specify nothing, mac or target (not mac and target)."
             raise error.InputError, msg
@@ -167,7 +180,7 @@ class SpokeTFTP:
             raise error.NotFound, msg
         result = self.search(mac)
         if result['exit_code'] == 3 and result['count'] == 0:
-            result['msg'] = "Deleted %s:" % result['type']
+            result['msg'] = "Deleted %s" % result['type']
             return result
         else:
             msg = 'Delete operation returned OK, but object still there?'
