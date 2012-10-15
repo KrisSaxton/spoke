@@ -298,7 +298,9 @@ class SpokeHostUUID(SpokeLDAP):
         except:
             msg = 'Update of next free UUID to %d failed' % new_uuid
             raise error.IncrementError, msg
-        mac = common.mac_from_uuid(uuid, 0)
+        mac = []
+        for item in range(uuid, new_uuid):
+            mac.append(common.mac_from_uuid(item,0))            
         if get_mac:
             result['data'] = (range(uuid, (new_uuid)), mac)
         else:
