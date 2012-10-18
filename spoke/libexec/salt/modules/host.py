@@ -51,11 +51,11 @@ def host_delete(org_name, host_name):
     return result
 
         
-def uuid_create(start_uuid, get_mac=False):
+def uuid_create(start_uuid=None, get_mac=False):
     try:       
         from spoke.lib.host import SpokeHostUUID
         uuid = SpokeHostUUID()
-        result = uuid.create(get_mac, uuid_start=start_uuid)
+        result = uuid.create(start_uuid, get_mac)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
@@ -84,11 +84,11 @@ def uuid_delete():
     return result
 
 
-def uuid_reserve(qty, get_mac=False):
+def uuid_reserve(qty=1, get_mac=False):
     try:
         from spoke.lib.host import SpokeHostUUID
         uuid = SpokeHostUUID()
-        result = uuid.modify(get_mac, increment=qty)
+        result = uuid.modify(qty, get_mac)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
