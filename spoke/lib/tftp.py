@@ -113,6 +113,7 @@ class SpokeTFTP:
                 return result
             item = {}
             for file in file_list:
+                valid_template = False
                 item_path = self.tftp_dir + file
                 file_name = os.path.basename(item_path)
                 if ".template" in file_name:
