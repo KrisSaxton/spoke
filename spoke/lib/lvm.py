@@ -47,8 +47,8 @@ class SpokeLVM:
             result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         except Exception:
             msg = 'Running command %s failed' % str_args
-            trace = traceback.format_exec()
-            raise error.SpokeError(msg, trace)
+#            trace = traceback.format_exec()
+            raise error.SpokeError(msg)
 
         data = result.communicate()
         stdout = data[0]
@@ -96,8 +96,8 @@ class SpokeLVM:
             result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         except Exception:
             msg = 'Running command %s failed' % str_args
-            trace = traceback.format_exec()
-            raise error.SpokeError(msg, trace)
+            #trace = traceback.format_exec()
+            raise error.SpokeError, msg
             
         out = result.communicate()
         (stdout, stderr) = (out[0], out[1])
@@ -145,10 +145,10 @@ class SpokeLVM:
         self.log.debug(msg)
         try:
             result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        except Exception, e:
+        except Exception:
             msg = 'Running command %s failed' % str_args
-            trace = traceback.format_exec()
-            raise error.SpokeError(msg, trace)
+            #trace = traceback.format_exec()
+            raise error.SpokeError(msg)
 
         data = result.communicate()
         stdout = data[0]

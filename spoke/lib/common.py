@@ -12,12 +12,21 @@ import string
 
 # own modules
 import spoke.lib.error as error
+import spoke.lib.logger as logger
+log = logger.setup('main', verbose=True, quiet=False)
 
 version = '1.0'
 
 def is_number(string):
     try:
         float(string)
+        return True
+    except ValueError:
+        return False
+
+def is_integer(string):
+    try:
+        int(string)
         return True
     except ValueError:
         return False
@@ -290,4 +299,13 @@ def process_results(data, name=None):
             result['msg'] = "Found %s:" % thing
         else:
             result['msg'] = 'Found ' + str(count) + ' ' + thing + 's:'
+    return result
+
+def handle_error(e):
+    log.error(e.msg)
+    if e.traceback:
+        log.debug(e.traceback)
+    result = {}
+    result['msg'] = e.__class__.__name__ + ': ' + e.msg
+    result['exit_code'] = e.exit_code
     return result

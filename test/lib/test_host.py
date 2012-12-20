@@ -62,10 +62,10 @@ class SpokeHostTest(unittest.TestCase):
         
     def setUp(self):
         """Create test organisation and host."""
-        next_uuid = SpokeHostUUID()
-        next_uuid.create(self.next_uuid_start)
         org = SpokeOrg()
         org.create(self.org_name, self.org_children)
+        next_uuid = SpokeHostUUID()
+        next_uuid.create(self.next_uuid_start)
         host = SpokeHost(self.org_name)
         host.create(self.host_name, self.host_uuid, self.host_mem, 
                     self.host_cpu,  self.host_family, self.host_type,
@@ -99,6 +99,16 @@ class SpokeHostTest(unittest.TestCase):
         result = next_uuid.create(self.next_uuid_start)
         expected_data = [1]
         self.assertEqual(result['data'], expected_data)
+
+    def test_create_next_free_uuid_mac(self):
+        """Create next free uuid + mac; return as tuple."""
+        next_uuid = SpokeHostUUID()
+        next_uuid.delete()
+        # Re init so it detects the delete
+        next_uuid.__init__()
+        result = next_uuid.create(self.next_uuid_start, get_mac=True)
+        expected_data = (1, '02:00:00:01:00:00')
+        self.assertEqual(result['data'], expected_data)
         
     def test_create_existing_free_uuid(self):
         """Create existing next free uuid; raise AlreadyExists."""
@@ -123,6 +133,13 @@ class SpokeHostTest(unittest.TestCase):
         expected_data = [1]
         self.assertEquals(result['data'], expected_data)
         
+    def test_update_and_get_next_free_uuid_mac(self):
+        """Get next free uuid and mac; return as tuple."""
+        next_uuid = SpokeHostUUID()
+        result = next_uuid.modify(get_mac=True)
+        expected_data = ([1], ['02:00:00:01:00:00'])
+        self.assertEquals(result['data'], expected_data)
+        
     def test_get_next_free_uuid(self):
         """Retrieve next free uuid; return uuid as list."""
         next_uuid = SpokeHostUUID()
@@ -135,6 +152,13 @@ class SpokeHostTest(unittest.TestCase):
         next_uuid = SpokeHostUUID()
         result = next_uuid.modify(4)
         expected_data = [1, 2, 3, 4]
+        self.assertEquals(result['data'], expected_data)
+        
+    def test_increment_and_get_multiple_next_free_uuid_and_mac(self):
+        """Get next 4 free uuids and macs; return uuids as list of integers."""
+        next_uuid = SpokeHostUUID()
+        result = next_uuid.modify(4, get_mac=True)
+        expected_data = ([1, 2, 3, 4], ['02:00:00:01:00:00', '02:00:00:02:00:00', '02:00:00:03:00:00', '02:00:00:04:00:00'])
         self.assertEquals(result['data'], expected_data)
 
     def test_update_next_free_uuid_with_string(self):

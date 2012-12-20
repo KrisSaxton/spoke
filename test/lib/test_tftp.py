@@ -20,7 +20,8 @@ class SpokeTFTPTest(unittest.TestCase):
         self.tftp_conf_dir = self.config.get('TFTP', 'tftp_conf_dir')
         self.tftp_mac_prefix = self.config.get('TFTP', 'tftp_mac_prefix')
         self.mac = '00:0C:29:57:3B:31'
-        self.target = 'testfile'
+        self.template = 'testfile.template'
+        self.run_id = 23123132
         self.tftp_dir = self.tftp_root + "/" + self.tftp_conf_dir + "/"
         
         
@@ -32,17 +33,20 @@ class SpokeTFTPTest(unittest.TestCase):
                     os.makedirs(d)
                 except Exception as e:
                     raise e
-        if not os.path.exists(self.tftp_dir + self.target):
-            open(self.tftp_dir + self.target, 'w').close()
+        if not os.path.exists(self.tftp_dir + self.template):
+            f = open(self.tftp_dir + self.template, 'w')
+            f.write("default local\nkernel linux\nappend somearg=2")
+            f.close
         tftp = SpokeTFTP(self.tftp_root)
-        tftp.create(self.mac, self.target)
+        tftp.create(self.mac, self.template)
     
     def tearDown(self):
         """Delete test tftp file structure."""
         tftp = SpokeTFTP(self.tftp_root)
         tftp.delete(self.mac)
-        if os.path.exists(self.tftp_dir + self.target):
-            os.remove(self.tftp_dir + self.target)
+        if os.path.exists(self.tftp_dir + self.template):
+            os.remove(self.tftp_dir + self.template)
+        
         for d in self.tftp_dir, self.tftp_root:
             if (os.path.exists(d)):
                 try:
@@ -50,38 +54,28 @@ class SpokeTFTPTest(unittest.TestCase):
                 except Exception as e:
                     raise e
                 
-    def test_get_tftp_link(self):
-        """Search for a tftp association; return list."""
+    def test_get_tftp_mac(self):
+        """Search for a tftp mac config; return list."""
         # mac should be returned as lower case, with s/:/- and with prefix
         mac = self.tftp_mac_prefix + '-' + '00-0c-29-57-3b-31'
         tftp = SpokeTFTP(self.tftp_root)
         result = tftp.search(self.mac)['data']
-        expected_result = [{mac:[self.target]}]
+        expected_result = [[mac]]
         self.assertEqual(result, expected_result) 
 
     def test_get_missing_mac(self):
-        """Search for missing mac link; return empty list."""
+        """Search for missing mac config; return empty list."""
         mac = '00:00:00:00:00:02'
         tftp = SpokeTFTP(self.tftp_root)
         result = tftp.search(mac)['data']
         expected_result = []
         self.assertEqual(result, expected_result)
 
-    def test_get_missing_target(self):
-        """Search for missing target; raise NotFound."""
-        target = 'missing'
+    def test_get_missing_template(self):
+        """Search for missing template; raise NotFound."""
+        template = 'missing'
         tftp = SpokeTFTP(self.tftp_root)
-        self.assertRaises(error.NotFound, tftp.search, target=target)
-        
-    def test_get_unused_target(self):
-        """Search for target with no linked macs; return empty list."""
-        target = 'unused'
-        tftp = SpokeTFTP(self.tftp_root)
-        open(self.tftp_dir + target, 'w').close()
-        result = tftp.search(target=target)['data']
-        expected_result = []
-        self.assertEqual(result, expected_result)
-        os.remove(self.tftp_dir + target)
+        self.assertRaises(error.NotFound, tftp.search, template=template)
 
     def test_get_invalid_mac(self):
         """Search for an invalid mac; raise InputError."""
@@ -89,91 +83,109 @@ class SpokeTFTPTest(unittest.TestCase):
         tftp = SpokeTFTP(self.tftp_root)
         self.assertRaises(error.InputError, tftp.search, mac)
 
-    def test_get_invalid_target(self):
-        """Search for an invalid target; raise InputError."""
-        target = 'du$$_lv'
+    def test_get_invalid_template(self):
+        """Search for an invalid template; raise InputError."""
+        template = 'du$$_lv'
         tftp = SpokeTFTP(self.tftp_root)
-        self.assertRaises(error.InputError, tftp.search, target)
+        self.assertRaises(error.InputError, tftp.search, template)
 
-    def test_get_multiple_macs(self):
-        """Search for all macs associated with target; return list."""        
-        # macs should be returned as lower case, with s/:/- and with prefix
-        mac1 = self.tftp_mac_prefix + '-' + '00-0c-29-57-3b-31'
-        raw_mac2 = '00:00:00:00:00:02'
-        mac2 = self.tftp_mac_prefix + '-' + '00-00-00-00-00-02'
-        target = self.target 
         
-        tftp = SpokeTFTP(self.tftp_root)
-        tftp.create(raw_mac2, target)
-        result = tftp.search(target=target)['data']
-        expected_result = [{self.target:[mac2, mac1]}]
-        self.assertEqual(result, expected_result)
-        tftp.delete(raw_mac2)
-        
-    def test_get_all_macs_targets(self):
-        """Search for all macs and targets; return list."""
+    def test_get_all_macs_templates(self):
+        """Search for all macs and templates; return list."""
         # macs should be returned as lower case, with s/:/- and with prefix
-        mac1 = self.tftp_mac_prefix + '-' + '00-0c-29-57-3b-31'
-        raw_mac3 = '00:00:00:00:00:03'
-        mac3 = self.tftp_mac_prefix + '-' + '00-00-00-00-00-03'
-        raw_mac4 = '00:00:00:00:00:04'
-        mac4 = self.tftp_mac_prefix + '-' + '00-00-00-00-00-04'
-        target = self.target
-        target2 = 'newtarget'
-        open(self.tftp_dir + target2, 'w').close()
+        raw_mac1 = '00-0c-29-57-3b-31'
+        raw_mac3 = '00-00-00-00-00-03'
+        raw_mac4 = '00-00-00-00-00-04'
+        template = self.template
+        template2 = 'newtemplate.template'
+        open(self.tftp_dir + template2, 'w').close()
         tftp = SpokeTFTP(self.tftp_root)
-        tftp.create(raw_mac3, target2)
-        tftp.create(raw_mac4, target2)
+        tftp.create(raw_mac3, template2)
+        tftp.create(raw_mac4, template2)
         result = tftp.search()['data']
-        expected_result = [{target2 : [mac3, mac4] ,target : [mac1]}]
-        self.assertEqual(result, expected_result)
+        expected_result = [{'templates' : [template, template2], 'configs' : [raw_mac3, raw_mac4, raw_mac1]}]
         tftp.delete(raw_mac3)
         tftp.delete(raw_mac4)
-        os.remove(self.tftp_dir + target2)
+        os.remove(self.tftp_dir + template2)
+        self.assertEqual(result, expected_result)
+        
 
     def test_create_association(self):
-        """Create association between mac and target; return results object."""
+        """Create mac config with no run id; return results object."""
         mac = '00:00:00:00:00:02'
         mac_file = '01-00-00-00-00-00-02'
         tftp = SpokeTFTP(self.tftp_root)
-        expected_result = [{mac_file: [self.target]}]
-        result = tftp.create(mac, self.target)['data']
-        self.assertEqual(result, expected_result)
+        expected_result = [[mac_file]]
+        result = tftp.create(mac, self.template)['data']
         tftp.delete(mac)
-
+        self.assertEqual(result, expected_result)
+        
+    def test_create_association_runid(self):
+        """Create mac config with run_id; return results object."""
+        mac = '00:00:00:00:00:02'
+        mac_file = '01-00-00-00-00-00-02'
+        tftp = SpokeTFTP(self.tftp_root)
+        expected_result = [[mac_file]]
+        result = tftp.create(mac, self.template, self.run_id)['data']
+        tftp.delete(mac)
+        self.assertEqual(result, expected_result)
+        
+    def test_template_no_kernelargs(self):
+        """Create mac config with bad template file contents; raises InputError."""
+        tftp = SpokeTFTP(self.tftp_root)
+        temp = open(self.tftp_dir + 'badtemplate.template', 'w')
+        temp.write("default local\nkernel linux\n")
+        temp.close
+        self.assertRaises(error.InputError, tftp.create, self.mac, 'badtemplate.template', self.run_id)
+        os.remove(self.tftp_dir + 'badtemplate.template')
+        
+    def test_invalid_runid(self):
+        """Create mac config with invalid run_id; raises InputError."""
+        run_id = 'alksdj'
+        tftp = SpokeTFTP(self.tftp_root)
+        self.assertRaises(error.InputError, tftp.create, self.mac, self.template, run_id)
+        
     def test_create_existing_association(self):
-        """Create existing association; raise AlreadyExists."""
+        """Create existing mac config; raise AlreadyExists."""
         tftp = SpokeTFTP(self.tftp_root)
         self.assertRaises(error.AlreadyExists, tftp.create, 
-                          self.mac, self.target)
-        
-    def test_create_association_with_missing_target(self):
-        """Create association to missing target; raise NotFound."""
+                          self.mac, self.template)
+       
+    def test_create_association_with_missing_template(self):
+        """Create mac config using missing template; raise NotFound."""
         mac = '00:00:00:00:00:03'
-        target = 'missing'
+        template = 'missing'
         tftp = SpokeTFTP(self.tftp_root)
-        self.assertRaises(error.NotFound, tftp.create, mac, target)    
-
+        self.assertRaises(error.NotFound, tftp.create, mac, template)
+            
+    def test_create_association_with_template_noext(self):
+        """Create mac config using missing template; raise NotFound."""
+        mac = '00:00:00:00:00:03'
+        tftp = SpokeTFTP(self.tftp_root)
+        open(self.tftp_dir + 'template.conf', 'w').close
+        self.assertRaises(error.InputError, tftp.create, mac, 'template.conf')
+        os.remove(self.tftp_dir + 'template.conf')
+        
     def test_create_invalid_mac(self):
-        """Create an association with an invalid mac; raise InputError."""
+        """Create config with an invalid mac; raise InputError."""
         mac = '00:00:00:00:00'
         tftp = SpokeTFTP(self.tftp_root)
         self.assertRaises(error.InputError, tftp.search, mac)
         
-    def test_create_invalid_target(self):
-        """Create an association with an invalid target; raise InputError."""
-        target = 'du$$_lv'
+    def test_create_invalid_template(self):
+        """Create a config with an invalid template; raise InputError."""
+        template = 'du$$_lv'
         tftp = SpokeTFTP(self.tftp_root)
-        self.assertRaises(error.InputError, tftp.search, target)
+        self.assertRaises(error.InputError, tftp.search, template)
 
     def test_delete_mac(self):
-        """Delete an association with target; return True."""
+        """Delete a config; return True."""
         tftp = SpokeTFTP(self.tftp_root)
         self.assertTrue(tftp.delete(self.mac))
-        tftp.create(self.mac, self.target)
+        tftp.create(self.mac, self.template)
         
     def test_delete_missing_mac(self):
-        """Delete a missing association; raise NotFound."""
+        """Delete a missing config; raise NotFound."""
         mac = '00:00:00:00:00:02'
         tftp = SpokeTFTP(self.tftp_root)
         self.assertRaises(error.NotFound, tftp.delete, mac)

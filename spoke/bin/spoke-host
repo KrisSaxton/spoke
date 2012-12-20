@@ -71,6 +71,8 @@ Examples:
                      help="perform a uuid action")
     group.add_option('-R', '--reserve', action='store_true', dest='reserve', 
                      help="reserve QTY uuids")
+    group.add_option('-m', '--getmac', action='store_true',
+                     dest='getmac', help="return a mac from UUID")
     parser.add_option_group(group)
     
     (options, args) = parser.parse_args()
@@ -151,13 +153,22 @@ Examples:
             uuid = SpokeHostUUID()
             
             if options.search:
-                result = uuid.get()
+                if options.getmac:
+                    result = uuid.get(get_mac=True)
+                else:
+                    result = uuid.get()
             elif options.create:
-                result = uuid.create(uuid_start=start_uuid)
+                if options.getmac:
+                    result = uuid.create(uuid_start=start_uuid, get_mac=True)
+                else:
+                    result = uuid.create(uuid_start=start_uuid)
             elif options.delete:
                 result = uuid.delete()
             elif options.reserve:
-                result = uuid.modify(increment=qty)
+                if options.getmac:
+                    result = uuid.modify(increment=qty, get_mac=True)
+                else:
+                    result = uuid.modify(increment=qty)
             log.info(result['msg'])
             if (options.search and result['count'] > 0) or options.create:
                 log.info(result['data'])
