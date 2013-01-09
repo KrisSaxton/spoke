@@ -33,11 +33,15 @@ def is_integer(string):
     
 def is_shell_safe(string):
     """Ensure input contains no dangerous characters."""
+    max_length = 36
     string = str(string)
     pattern = re.compile('^[-_A-Za-z0-9 \.]+$')
     valid = pattern.match(string)
-    if not valid:
+    if not valid or len(string) > 36:
         msg = '%s contains illegal characters' % string
+        raise error.InputError(msg)
+    elif len(string) > max_length:
+        msg = '%s cannot be longer than %s' % (string, max_length)
         raise error.InputError(msg)
     return string
 

@@ -57,9 +57,7 @@ class SpokeTFTP:
         """Creates a config at mac using template"""
         mac = common.validate_mac(mac)
         if run_id is not None:
-            if not common.is_integer(run_id):
-                msg = "Run ID must be an integer or not defined"
-                raise error.InputError, msg
+            run_id = common.is_shell_safe(run_id)
         mac = string.replace(mac, ":", "-") #Format for use on tftp filesystem
         template = self._validate_template(template)
         template_path = self.tftp_dir + template

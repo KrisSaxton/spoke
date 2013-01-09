@@ -102,7 +102,7 @@ Examples:
 
     try:
         conf = config.setup(options.config_file)
-    except error.ConfigError, e:
+    except ConfigError, e:
         print e.msg
         raise e
 
