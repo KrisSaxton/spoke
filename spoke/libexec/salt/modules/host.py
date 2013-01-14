@@ -17,7 +17,7 @@ try:
     from spoke.lib.host import SpokeHost
     from spoke.lib.host import SpokeHostUUID
     has_host = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_host = False
 
 log = logging.getLogger(__name__)

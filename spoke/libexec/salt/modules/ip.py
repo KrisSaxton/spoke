@@ -16,7 +16,7 @@ try:
     import spoke.lib.common as common
     from spoke.lib.ip import SpokeSubnet
     has_ip = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_ip = False
 
 log = logging.getLogger(__name__)

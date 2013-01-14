@@ -15,7 +15,7 @@ try:
     import spoke.lib.config as config
     import spoke.lib.common as common
     has_dhcp = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_dhcp = False
 
 log = logging.getLogger(__name__)

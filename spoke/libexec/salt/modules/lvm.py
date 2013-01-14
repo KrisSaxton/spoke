@@ -16,7 +16,7 @@ try:
     import spoke.lib.common as common
     from spoke.lib.lvm import SpokeLVM
     has_lvm = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_lvm = False
 
 log = logging.getLogger(__name__)

@@ -16,7 +16,7 @@ try:
     import spoke.lib.common as common
     from spoke.lib.tftp import SpokeTFTP
     has_tftp = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_tftp = False
 
 log = logging.getLogger(__name__)

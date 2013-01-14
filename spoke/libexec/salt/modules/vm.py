@@ -17,7 +17,7 @@ try:
     from spoke.lib.vm_storage import SpokeVMStorageXen
     from spoke.lib.vm_power import SpokeVMPowerXen
     has_vm = True
-except ImportError:
+except (ImportError, error.SpokeError) as e:
     has_vm = False
 
 log = logging.getLogger(__name__)
