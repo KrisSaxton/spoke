@@ -1,28 +1,48 @@
 '''
-Note this will need extending  when we want more than just XEN
-
+Salt module to expose TFTP management elements of Spoke API
 '''
 
+# Import core libs
 import re
+import logging
 
-import spoke.lib.error as error
-import spoke.lib.config as config
-import spoke.lib.common as common
+# Import salt modules
+from salt.exceptions import SaltInvocationError
 
+# Import spoke libs
+try:
+    import spoke.lib.error as error
+    import spoke.lib.config as config
+    import spoke.lib.common as common
+    from spoke.lib.lvm import SpokeLVM
+    has_spoke = True
+except ImportError:
+    has_spoke = False
+
+log = logging.getLogger(__name__)
 version = common.version
 
-config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
 
-try:
-    conf = config.setup(config_file)
-except error.ConfigError, e:
-    raise
+def _salt_config(name):
+    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    if not value:
+        msg = 'missing SPOKE.{0} in config'.format(name)
+        raise SaltInvocationError(msg)
+    return value
 
+
+def _spoke_config(config_file):
+    try:
+        conf = config.setup(config_file)
+    except error.ConfigError, e:
+        msg = 'Error reading config file {0}'.format(config_file)
+        raise SaltInvocationError(msg)
+    return conf
 
 def search(vg_name, lv_name=None):
-    from spoke.lib.lvm import SpokeLVM
-    lv = SpokeLVM(vg_name)
     try:
+        conf = _spoke_config(_salt_config('config'))
+        lv = SpokeLVM(vg_name)
         result = lv.get(lv_name)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -30,9 +50,9 @@ def search(vg_name, lv_name=None):
 
 
 def create(vg_name, lv_name, lv_size):
-    from spoke.lib.lvm import SpokeLVM
-    lv = SpokeLVM(vg_name)
     try:
+        conf = _spoke_config(_salt_config('config'))
+        lv = SpokeLVM(vg_name)
         result = lv.create(lv_name, lv_size)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -40,15 +60,14 @@ def create(vg_name, lv_name, lv_size):
 
 
 def delete(vg_name, lv_name, force=False):
-    from spoke.lib.lvm import SpokeLVM
-    lv = SpokeLVM(vg_name)
     if force is True:
         try:
+            conf = _spoke_config(_salt_config('config'))
+            lv = SpokeLVM(vg_name)
             result = lv.delete(lv_name)
         except error.SpokeError as e:
             result = common.handle_error(e)
     else:
-        result = "Set force=True to delete %s from group %s" % (lv_name, vg_name)
+        result = "Set force=True to delete %s from group %s" %\
+            (lv_name, vg_name)
     return result
-
-    

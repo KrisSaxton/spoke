@@ -1,22 +1,49 @@
+'''
+Salt module to expose Host management elements of Spoke API
+'''
 
-# own modules
-import spoke.lib.error as error
-import spoke.lib.config as config
-import spoke.lib.common as common
+# Import core libs
+import re
+import logging
 
-version = common.version
-config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+# Import salt modules
+from salt.exceptions import SaltInvocationError
 
+# Import spoke libs
 try:
-    conf = config.setup(config_file)
-except error.ConfigError, e:
-    raise
-
-
-# Host commands
-def host_search(org_name, host_name=None):
+    import spoke.lib.error as error
+    import spoke.lib.config as config
+    import spoke.lib.common as common
     from spoke.lib.host import SpokeHost
+    from spoke.lib.host import SpokeHostUUID
+    has_spoke = True
+except ImportError:
+    has_spoke = False
+
+log = logging.getLogger(__name__)
+version = common.version
+
+
+def _salt_config(name):
+    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    if not value:
+        msg = 'missing SPOKE.{0} in config'.format(name)
+        raise SaltInvocationError(msg)
+    return value
+
+
+def _spoke_config(config_file):
     try:
+        conf = config.setup(config_file)
+    except error.ConfigError, e:
+        msg = 'Error reading config file {0}'.format(config_file)
+        raise SaltInvocationError(msg)
+    return conf
+
+
+def host_search(org_name, host_name=None):
+    try:
+        conf = _spoke_config(_salt_config('config'))
         host = SpokeHost(org_name)
         if host_name is None:
             result = host.get()
@@ -26,34 +53,34 @@ def host_search(org_name, host_name=None):
         result = common.handle_error(e)
     return result
 
-        
-def host_create(org_name, host_name, host_uuid, host_mem, host_cpu, 
-                                 host_family, host_type, 
-                                 host_storage_layout, host_network_layout):
-    from spoke.lib.host import SpokeHost
+
+def host_create(org_name, host_name, host_uuid, host_mem, host_cpu,
+                host_family, host_type,
+                host_storage_layout, host_network_layout):
     try:
+        conf = _spoke_config(_salt_config('config'))
         host = SpokeHost(org_name)
-        result = host.create(host_name, host_uuid, host_mem, host_cpu, 
-                                 host_family, host_type, 
-                                 host_storage_layout, host_network_layout)
+        result = host.create(host_name, host_uuid, host_mem, host_cpu,
+                             host_family, host_type,
+                             host_storage_layout, host_network_layout)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
-    
-    
+
+
 def host_delete(org_name, host_name):
-    from spoke.lib.host import SpokeHost
     try:
+        conf = _spoke_config(_salt_config('config'))
         host = SpokeHost(org_name)
         result = host.delete(host_name)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
 
-        
+
 def uuid_create(start_uuid=None, get_mac=False):
-    try:       
-        from spoke.lib.host import SpokeHostUUID
+    try:
+        conf = _spoke_config(_salt_config('config'))
         uuid = SpokeHostUUID()
         result = uuid.create(start_uuid, get_mac)
     except error.SpokeError as e:
@@ -62,21 +89,19 @@ def uuid_create(start_uuid=None, get_mac=False):
 
 
 def uuid_search(get_mac=False):
-
-    print get_mac
-    print type(get_mac)
     try:
-        from spoke.lib.host import SpokeHostUUID
+        conf = _spoke_config(_salt_config('config'))
         uuid = SpokeHostUUID()
-        result = uuid.get(get_mac)
+        print 'My Get_mac is {0}'.format(get_mac)
+        result = uuid.get(get_mac=get_mac)
     except error.SpokeError as e:
         result = common.handle_error(e)
-    return result  
+    return result
 
 
 def uuid_delete():
     try:
-        from spoke.lib.host import SpokeHostUUID
+        conf = _spoke_config(_salt_config('config'))
         uuid = SpokeHostUUID()
         result = uuid.delete()
     except error.SpokeError as e:
@@ -86,7 +111,7 @@ def uuid_delete():
 
 def uuid_reserve(qty=1, get_mac=False):
     try:
-        from spoke.lib.host import SpokeHostUUID
+        conf = _spoke_config(_salt_config('config'))
         uuid = SpokeHostUUID()
         result = uuid.modify(qty, get_mac)
     except error.SpokeError as e:

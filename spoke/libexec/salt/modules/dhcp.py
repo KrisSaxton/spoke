@@ -1,25 +1,51 @@
 '''
-Note this will need extending  when we want more than just XEN
-
+Salt module to expose DHCP management elements of Spoke API
 '''
 
+# Import core libs
 import re
+import logging
 
-import spoke.lib.error as error
-import spoke.lib.config as config
-import spoke.lib.common as common
+# Import salt modules
+from salt.exceptions import SaltInvocationError
 
-version = common.version
-config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
-
+# Import spoke libs
 try:
-    conf = config.setup(config_file)
-except error.ConfigError, e:
-    raise
+    import spoke.lib.error as error
+    import spoke.lib.config as config
+    import spoke.lib.common as common
+    has_spoke = True
+except ImportError:
+    has_spoke = False
+
+log = logging.getLogger(__name__)
+version = common.version
 
 
-def reservation_search(dhcp_server, dhcp_group, host_name):
+def _salt_config(name):
+    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    if not value:
+        msg = 'missing SPOKE.{0} in config'.format(name)
+        raise SaltInvocationError(msg)
+    return value
+
+
+def _spoke_config(config_file):
     try:
+        conf = config.setup(config_file)
+    except error.ConfigError, e:
+        msg = 'Error reading config file {0}'.format(config_file)
+        raise SaltInvocationError(msg)
+    return conf
+
+
+def reservation_search(host_name, dhcp_server=None, dhcp_group=None):
+    try:
+        conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.get(host_name)
@@ -30,6 +56,7 @@ def reservation_search(dhcp_server, dhcp_group, host_name):
 
 def reservation_create(dhcp_server, dhcp_group, host_name, mac,  ip):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPHost
         from spoke.lib.dhcp import SpokeDHCPAttr
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
@@ -38,9 +65,9 @@ def reservation_create(dhcp_server, dhcp_group, host_name, mac,  ip):
         except error.AlreadyExists:
             pass
         attr = SpokeDHCPAttr(dhcp_server, dhcp_group, host_name)
-        attr.create("dhcpHWAddress", "ethernet %s" % mac )
-        attr.create("dhcpStatements", "fixed-address %s" %ip )
-        attr.create("dhcpOption", "host-name \"%s\"" %host_name )
+        attr.create("dhcpHWAddress", "ethernet %s" % mac)
+        attr.create("dhcpStatements", "fixed-address %s" % ip)
+        attr.create("dhcpOption", "host-name \"%s\"" % host_name)
         result = host.get(host_name)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -49,6 +76,7 @@ def reservation_create(dhcp_server, dhcp_group, host_name, mac,  ip):
 
 def reservation_delete(dhcp_server, dhcp_group, host_name):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.delete(host_name)
@@ -59,6 +87,7 @@ def reservation_delete(dhcp_server, dhcp_group, host_name):
 
 def server_create(server):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPServer
         server = SpokeDHCPServer()
         result = server.create(server)
@@ -69,6 +98,7 @@ def server_create(server):
 
 def server_delete(server):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPServer
         server = SpokeDHCPServer()
         result = server.delete(server)
@@ -79,6 +109,7 @@ def server_delete(server):
 
 def server_search(server):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPServer
         server = SpokeDHCPServer()
         result = server.get(server)
@@ -89,8 +120,9 @@ def server_search(server):
 
 def service_create(service):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPService
-        service= SpokeDHCPService()
+        service = SpokeDHCPService()
         result = service.create(service)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -99,6 +131,7 @@ def service_create(service):
 
 def service_delete(service):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPService
         service = SpokeDHCPService()
         result = service.delete(service)
@@ -109,6 +142,7 @@ def service_delete(service):
 
 def service_search(service):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPService
         service = SpokeDHCPService()
         result = service.get(service)
@@ -119,8 +153,9 @@ def service_search(service):
 
 def subnet_create(dhcp_server, subnet, mask, start_ip=None, stop_ip=None):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPSubnet
-        subnet= SpokeDHCPSubnet(dhcp_server)
+        subnet = SpokeDHCPSubnet(dhcp_server)
         result = subnet.create(subnet, mask, start_ip, stop_ip)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -129,6 +164,7 @@ def subnet_create(dhcp_server, subnet, mask, start_ip=None, stop_ip=None):
 
 def subnet_delete(dhcp_server, subnet):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPSubnet
         subnet = SpokeDHCPSubnet(dhcp_server)
         result = subnet.delete(subnet)
@@ -139,6 +175,7 @@ def subnet_delete(dhcp_server, subnet):
 
 def subnet_search(dhcp_server, subnet):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPSubnet
         subnet = SpokeDHCPSubnet(dhcp_server)
         result = subnet.get(subnet)
@@ -149,6 +186,7 @@ def subnet_search(dhcp_server, subnet):
 
 def group_create(dhcp_server, dhcp_group):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.create(dhcp_group)
@@ -159,6 +197,7 @@ def group_create(dhcp_server, dhcp_group):
 
 def group_delete(dhcp_server, dhcp_group):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.delete(dhcp_group)
@@ -169,6 +208,7 @@ def group_delete(dhcp_server, dhcp_group):
 
 def group_search(dhcp_server, dhcp_group):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.get(dhcp_group)
@@ -179,6 +219,7 @@ def group_search(dhcp_server, dhcp_group):
 
 def host_create(dhcp_server, dhcp_group, dhcp_host):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.create(dhcp_host)
@@ -189,6 +230,7 @@ def host_create(dhcp_server, dhcp_group, dhcp_host):
 
 def host_delete(dhcp_server, dhcp_group, dhcp_host):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.delete(dhcp_host)
@@ -199,6 +241,7 @@ def host_delete(dhcp_server, dhcp_group, dhcp_host):
 
 def host_search(dhcp_server, dhcp_group, dhcp_host):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.get(dhcp_host)
@@ -209,6 +252,7 @@ def host_search(dhcp_server, dhcp_group, dhcp_host):
 
 def attr_create(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPAttr
         attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
         result = attr.create(attr_type, attr_value)
@@ -219,6 +263,7 @@ def attr_create(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
 
 def attr_delete(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPAttr
         attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
         result = attr.delete(attr_type, attr_value)
@@ -229,6 +274,7 @@ def attr_delete(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
 
 def attr_search(dhcp_server, dhcp_group, dhcp_host, attr_type):
     try:
+        conf = _spoke_config(_salt_config('config'))
         from spoke.lib.dhcp import SpokeDHCPAttr
         attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
         result = attr.get(attr_type)

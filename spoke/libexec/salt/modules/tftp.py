@@ -1,31 +1,43 @@
 '''
-Salt module for querying tftp directory and creating
-or deleting tftp configs for specific macs from a
-template
-
-REQUIRES:
-Spoke: tftp lib, error, config and common
+Salt module to expose TFTP management elements of Spoke API
 '''
 
-# own modules
-import spoke.lib.error as error
-import spoke.lib.config as config
-import spoke.lib.common as common
+# Import core libs
+import re
+import logging
 
-version = common.version
-config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
+# Import salt modules
+from salt.exceptions import SaltInvocationError
 
+# Import spoke libs
 try:
-    conf = config.setup(config_file)
-except error.ConfigError, e:
-    raise
-
-try:
-    tftproot = conf.get("TFTP", "tftp_root")
+    import spoke.lib.error as error
+    import spoke.lib.config as config
+    import spoke.lib.common as common
     from spoke.lib.tftp import SpokeTFTP
-    tftp = SpokeTFTP(tftproot)
-except error.SpokeError, e:
-    raise
+    has_spoke = True
+except ImportError:
+    has_spoke = False
+
+log = logging.getLogger(__name__)
+version = common.version
+
+
+def _salt_config(name):
+    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    if not value:
+        msg = 'missing SPOKE.{0} in config'.format(name)
+        raise SaltInvocationError(msg)
+    return value
+
+
+def _spoke_config(config_file):
+    try:
+        conf = config.setup(config_file)
+    except error.ConfigError, e:
+        msg = 'Error reading config file {0}'.format(config_file)
+        raise SaltInvocationError(msg)
+    return conf
 
 
 def search(mac=None, template=None):
@@ -39,6 +51,9 @@ def search(mac=None, template=None):
         salt '*' tftp.search template='test.template'
     '''
     try:
+        conf = _spoke_config(_salt_config('config'))
+        tftproot = conf.get("TFTP", "tftp_root")
+        tftp = SpokeTFTP(tftproot)
         result = tftp.search(mac, template)
     except error.SpokeError as e:
         result = common.handle_error(e)
@@ -58,6 +73,9 @@ def create(mac=None, template=None, run_id=None):
     '''
     if mac is None or template is None:
         return "mac and template must be specified"
+    conf = _spoke_config(_salt_config('config'))
+    tftproot = conf.get("TFTP", "tftp_root")
+    tftp = SpokeTFTP(tftproot)
     if run_id is None:
         try:
             result = tftp.create(mac, template)
@@ -82,6 +100,9 @@ def delete(mac=None):
     if mac is None:
         return "mac must be specified"
     try:
+        conf = _spoke_config(_salt_config('config'))
+        tftproot = conf.get("TFTP", "tftp_root")
+        tftp = SpokeTFTP(tftproot)
         result = tftp.delete(mac)
     except error.SpokeError as e:
         result = common.handle_error(e)

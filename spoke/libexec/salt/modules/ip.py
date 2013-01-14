@@ -1,26 +1,48 @@
 '''
-Note this will need extending  when we want more than just XEN
-
+Salt module to expose IP management elements of Spoke API
 '''
 
+# Import core libs
 import re
+import logging
 
-import spoke.lib.error as error
-import spoke.lib.config as config
-import spoke.lib.common as common
+# Import salt modules
+from salt.exceptions import SaltInvocationError
 
-version = common.version
-config_file = '/usr/local/pkg/spoke/etc/spoke.conf'
-
+# Import spoke libs
 try:
-    conf = config.setup(config_file)
-except error.ConfigError, e:
-    raise
+    import spoke.lib.error as error
+    import spoke.lib.config as config
+    import spoke.lib.common as common
+    from spoke.lib.ip import SpokeSubnet
+    has_spoke = True
+except ImportError:
+    has_spoke = False
+
+log = logging.getLogger(__name__)
+version = common.version
+
+
+def _salt_config(name):
+    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    if not value:
+        msg = 'missing SPOKE.{0} in config'.format(name)
+        raise SaltInvocationError(msg)
+    return value
+
+
+def _spoke_config(config_file):
+    try:
+        conf = config.setup(config_file)
+    except error.ConfigError, e:
+        msg = 'Error reading config file {0}'.format(config_file)
+        raise SaltInvocationError(msg)
+    return conf
 
 
 def search(network, mask):
     try:
-        from spoke.lib.ip import SpokeSubnet
+        conf = _spoke_config(_salt_config('config'))
         subnet = SpokeSubnet(ip=network, mask=mask, dc=None)
         result = subnet.get()
     except error.SpokeError as e:
@@ -30,7 +52,7 @@ def search(network, mask):
 
 def create(network, mask):
     try:
-        from spoke.lib.ip import SpokeSubnet
+        conf = _spoke_config(_salt_config('config'))
         subnet = SpokeSubnet(ip=network, mask=mask, dc=None)
         result = subnet.create(None)
     except error.SpokeError as e:
@@ -40,7 +62,7 @@ def create(network, mask):
 
 def delete(network, mask):
     try:
-        from spoke.lib.ip import SpokeSubnet
+        conf = _spoke_config(_salt_config('config'))
         subnet = SpokeSubnet(ip=network, mask=mask, dc=None)
         result = subnet.delete()
     except error.SpokeError as e:
@@ -50,7 +72,7 @@ def delete(network, mask):
 
 def reserve(network, mask, qty):
     try:
-        from spoke.lib.ip import SpokeSubnet
+        conf = _spoke_config(_salt_config('config'))
         subnet = SpokeSubnet(ip=network, mask=mask, dc=None)
         result = subnet.modify(release=None, reserve=qty)
     except error.SpokeError as e:
@@ -60,7 +82,7 @@ def reserve(network, mask, qty):
 
 def release(network, mask, ip):
     try:
-        from spoke.lib.ip import SpokeSubnet
+        conf = _spoke_config(_salt_config('config'))
         subnet = SpokeSubnet(ip=network, mask=mask, dc=None)
         result = subnet.modify(release=ip, reserve=None)
     except error.SpokeError as e:
