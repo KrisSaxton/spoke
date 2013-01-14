@@ -39,9 +39,11 @@ def _spoke_config(config_file):
         raise SaltInvocationError(msg)
     return conf
 
-def search(vg_name, lv_name=None):
+def search(lv_name=None, vg_name=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not vg_name:
+            vg_name = conf.get('LVM', 'lv_def_vg_name')
         lv = SpokeLVM(vg_name)
         result = lv.get(lv_name)
     except error.SpokeError as e:
@@ -49,9 +51,11 @@ def search(vg_name, lv_name=None):
     return result
 
 
-def create(vg_name, lv_name, lv_size):
+def create(lv_name, lv_size, vg_name=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not vg_name:
+            vg_name = conf.get('LVM', 'lv_def_vg_name')
         lv = SpokeLVM(vg_name)
         result = lv.create(lv_name, lv_size)
     except error.SpokeError as e:
@@ -59,10 +63,12 @@ def create(vg_name, lv_name, lv_size):
     return result
 
 
-def delete(vg_name, lv_name, force=False):
+def delete(lv_name, force=False, vg_name=None):
+    conf = _spoke_config(_salt_config('config'))
+    if not vg_name:
+        vg_name = conf.get('LVM', 'lv_def_vg_name')
     if force is True:
         try:
-            conf = _spoke_config(_salt_config('config'))
             lv = SpokeLVM(vg_name)
             result = lv.delete(lv_name)
         except error.SpokeError as e:
