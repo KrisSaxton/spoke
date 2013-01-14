@@ -297,7 +297,7 @@ class SpokeDHCPHost(SpokeLDAP):
         group = SpokeDHCPGroup(dhcp_server)
         result = group.get(group_name)
         if result['data'] == []:
-            msg = "Can't find DHCP group for %s" % dhcp_server
+            msg = "Can't find DHCP group %s for %s" % (group_name, dhcp_server)
             raise error.NotFound(msg)          
         return result
         

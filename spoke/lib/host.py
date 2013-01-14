@@ -222,6 +222,7 @@ class SpokeHostUUID(SpokeLDAP):
 
     def create(self, uuid_start=None, get_mac=False):
         """Create initial UUID object; return True."""
+        self.log.debug('Running UUID create with get_mac set to %s' % get_mac)
         if uuid_start:
             self.next_uuid_start = uuid_start
         if not common.is_number(self.next_uuid_start):
@@ -254,6 +255,7 @@ class SpokeHostUUID(SpokeLDAP):
         
     def get(self, get_mac=False):
         """Retrieve the next free UUID object; return UUID as integer."""
+        self.log.debug('Running UUID get with get_mac set to %s' % get_mac)
         dn = self.next_uuid_dn
         filter = '%s=*' % self.next_uuid_attr
         msg = 'Searching at %s with scope %s and filter %s' % \
@@ -265,7 +267,7 @@ class SpokeHostUUID(SpokeLDAP):
             msg = "Cannot locate a UUID; maybe you need to run create?"
             raise error.NotFound(msg)
         uuid = int(result['data'][0][1][self.next_uuid_attr][0])
-        if get_mac is True:
+        if get_mac:
             mac = common.mac_from_uuid(uuid, 0)
             result['data'] = (uuid, mac)
         else:
