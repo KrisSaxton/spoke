@@ -32,7 +32,7 @@ def __virtual__():
 
 
 def _salt_config(name):
-    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    value = __opts__['SPOKE.{0}'.format(name)]
     if not value:
         msg = 'missing SPOKE.{0} in config'.format(name)
         raise SaltInvocationError(msg)
