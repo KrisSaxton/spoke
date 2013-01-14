@@ -54,9 +54,13 @@ def reservation_search(host_name, dhcp_server=None, dhcp_group=None):
     return result
 
 
-def reservation_create(dhcp_server, dhcp_group, host_name, mac,  ip):
+def reservation_create(host_name, mac, ip, dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         from spoke.lib.dhcp import SpokeDHCPAttr
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
@@ -74,9 +78,13 @@ def reservation_create(dhcp_server, dhcp_group, host_name, mac,  ip):
     return result
 
 
-def reservation_delete(dhcp_server, dhcp_group, host_name):
+def reservation_delete(host_name, dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.delete(host_name)
@@ -85,108 +93,13 @@ def reservation_delete(dhcp_server, dhcp_group, host_name):
     return result
 
 
-def server_create(server):
+def group_create(dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPServer
-        server = SpokeDHCPServer()
-        result = server.create(server)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def server_delete(server):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPServer
-        server = SpokeDHCPServer()
-        result = server.delete(server)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def server_search(server):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPServer
-        server = SpokeDHCPServer()
-        result = server.get(server)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def service_create(service):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPService
-        service = SpokeDHCPService()
-        result = service.create(service)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def service_delete(service):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPService
-        service = SpokeDHCPService()
-        result = service.delete(service)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def service_search(service):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPService
-        service = SpokeDHCPService()
-        result = service.get(service)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def subnet_create(dhcp_server, subnet, mask, start_ip=None, stop_ip=None):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPSubnet
-        subnet = SpokeDHCPSubnet(dhcp_server)
-        result = subnet.create(subnet, mask, start_ip, stop_ip)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def subnet_delete(dhcp_server, subnet):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPSubnet
-        subnet = SpokeDHCPSubnet(dhcp_server)
-        result = subnet.delete(subnet)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def subnet_search(dhcp_server, subnet):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPSubnet
-        subnet = SpokeDHCPSubnet(dhcp_server)
-        result = subnet.get(subnet)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def group_create(dhcp_server, dhcp_group):
-    try:
-        conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.create(dhcp_group)
@@ -195,9 +108,13 @@ def group_create(dhcp_server, dhcp_group):
     return result
 
 
-def group_delete(dhcp_server, dhcp_group):
+def group_delete(dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.delete(dhcp_group)
@@ -206,9 +123,13 @@ def group_delete(dhcp_server, dhcp_group):
     return result
 
 
-def group_search(dhcp_server, dhcp_group):
+def group_search(dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPGroup
         group = SpokeDHCPGroup(dhcp_server)
         result = group.get(dhcp_group)
@@ -217,9 +138,13 @@ def group_search(dhcp_server, dhcp_group):
     return result
 
 
-def host_create(dhcp_server, dhcp_group, dhcp_host):
+def host_create(dhcp_host, dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.create(dhcp_host)
@@ -228,9 +153,13 @@ def host_create(dhcp_server, dhcp_group, dhcp_host):
     return result
 
 
-def host_delete(dhcp_server, dhcp_group, dhcp_host):
+def host_delete(dhcp_host, dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.delete(dhcp_host)
@@ -239,45 +168,16 @@ def host_delete(dhcp_server, dhcp_group, dhcp_host):
     return result
 
 
-def host_search(dhcp_server, dhcp_group, dhcp_host):
+def host_search(dhcp_host, dhcp_server=None, dhcp_group=None):
     try:
         conf = _spoke_config(_salt_config('config'))
+        if not dhcp_server:
+            dhcp_server = conf.get('DHCP', 'dhcp_def_server')
+        if not dhcp_group:
+            dhcp_group = conf.get('DHCP', 'dhcp_def_group')
         from spoke.lib.dhcp import SpokeDHCPHost
         host = SpokeDHCPHost(dhcp_server, dhcp_group)
         result = host.get(dhcp_host)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def attr_create(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPAttr
-        attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
-        result = attr.create(attr_type, attr_value)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def attr_delete(dhcp_server, dhcp_group, dhcp_host, attr_type, attr_value):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPAttr
-        attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
-        result = attr.delete(attr_type, attr_value)
-    except error.SpokeError as e:
-        result = common.handle_error(e)
-    return result
-
-
-def attr_search(dhcp_server, dhcp_group, dhcp_host, attr_type):
-    try:
-        conf = _spoke_config(_salt_config('config'))
-        from spoke.lib.dhcp import SpokeDHCPAttr
-        attr = SpokeDHCPAttr(dhcp_server, dhcp_group, dhcp_host)
-        result = attr.get(attr_type)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
