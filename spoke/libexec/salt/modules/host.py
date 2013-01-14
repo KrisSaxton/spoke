@@ -16,16 +16,25 @@ try:
     import spoke.lib.common as common
     from spoke.lib.host import SpokeHost
     from spoke.lib.host import SpokeHostUUID
-    has_spoke = True
+    has_host = True
 except ImportError:
-    has_spoke = False
+    has_host = False
 
 log = logging.getLogger(__name__)
 version = common.version
 
 
+def __virtual__():
+    '''
+    Only load this module if the spoke modules imported correctly
+    '''
+    if has_host:
+        return 'host'
+    return False
+
+
 def _salt_config(name):
-    value = __salt__['config.option']('SPOKE.{0}'.format(name))
+    value = __opts__['SPOKE.{0}'.format(name)]
     if not value:
         msg = 'missing SPOKE.{0} in config'.format(name)
         raise SaltInvocationError(msg)

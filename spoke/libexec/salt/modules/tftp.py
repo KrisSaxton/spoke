@@ -15,12 +15,21 @@ try:
     import spoke.lib.config as config
     import spoke.lib.common as common
     from spoke.lib.tftp import SpokeTFTP
-    has_spoke = True
+    has_tftp = True
 except ImportError:
-    has_spoke = False
+    has_tftp = False
 
 log = logging.getLogger(__name__)
 version = common.version
+
+
+def __virtual__():
+    '''
+    Only load this module if the spoke modules imported correctly
+    '''
+    if has_tftp:
+        return 'tftp'
+    return False
 
 
 def _salt_config(name):

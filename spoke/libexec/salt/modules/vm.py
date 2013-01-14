@@ -16,12 +16,21 @@ try:
     import spoke.lib.common as common
     from spoke.lib.vm_storage import SpokeVMStorageXen
     from spoke.lib.vm_power import SpokeVMPowerXen
-    has_spoke = True
+    has_vm = True
 except ImportError:
-    has_spoke = False
+    has_vm = False
 
 log = logging.getLogger(__name__)
 version = common.version
+
+
+def __virtual__():
+    '''
+    Only load this module if the spoke modules imported correctly
+    '''
+    if has_vm:
+        return 'vm'
+    return False
 
 
 def _salt_config(name):

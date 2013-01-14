@@ -14,12 +14,21 @@ try:
     import spoke.lib.error as error
     import spoke.lib.config as config
     import spoke.lib.common as common
-    has_spoke = True
+    has_dhcp = True
 except ImportError:
-    has_spoke = False
+    has_dhcp = False
 
 log = logging.getLogger(__name__)
 version = common.version
+
+
+def __virtual__():
+    '''
+    Only load this module if the spoke modules imported correctly
+    '''
+    if has_dhcp:
+        return 'dhcp'
+    return False
 
 
 def _salt_config(name):

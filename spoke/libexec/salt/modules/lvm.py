@@ -15,12 +15,21 @@ try:
     import spoke.lib.config as config
     import spoke.lib.common as common
     from spoke.lib.lvm import SpokeLVM
-    has_spoke = True
+    has_lvm = True
 except ImportError:
-    has_spoke = False
+    has_lvm = False
 
 log = logging.getLogger(__name__)
 version = common.version
+
+
+def __virtual__():
+    '''
+    Only load this module if the spoke modules imported correctly
+    '''
+    if has_lvm:
+        return 'lvm'
+    return False
 
 
 def _salt_config(name):
@@ -38,6 +47,7 @@ def _spoke_config(config_file):
         msg = 'Error reading config file {0}'.format(config_file)
         raise SaltInvocationError(msg)
     return conf
+
 
 def search(lv_name=None, vg_name=None):
     try:
