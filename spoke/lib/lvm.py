@@ -26,10 +26,12 @@ import spoke.lib.logger as logger
 
 class SpokeLVM:
     
-    def __init__(self, vg_name):
+    def __init__(self, vg_name=None):
         """Get config, setup logging."""
         self.config = config.setup()
         self.log = logger.setup(__name__)
+        if not vg_name:
+            vg_name = self.config.get('LVM', 'lv_def_vg_name')
         self.vg_name = common.is_shell_safe(vg_name)
         self.lv_units = self.config.get('LVM', 'lv_units', 'g')
     
