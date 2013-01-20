@@ -76,11 +76,10 @@ class SpokeHost(SpokeLDAP):
         host_mem = common.validate_mem(host_mem)
         host_cpu = common.validate_cpu(host_cpu)
         host_family = common.validate_host_family(host_family)
-        # Verifies that the interfaces referenced in the storage layout
-        # exist in the configuration file
-        host_storage_layout = self._validate_storage_layout(host_storage_layout)
-        # and for network layouts.
-        host_network_layout = self._validate_network_layout(host_network_layout)
+        # Verification that the objects referenced in the storage and network
+        # layout exist in the config file takes place in the vm module
+        host_storage_layout = common.is_shell_safe(host_storage_layout)
+        host_network_layout = common.is_shell_safe(host_network_layout)
         host_type = common.validate_host_type(host_type)
         host_extra_opts = common.is_shell_safe(host_extra_opts)
             
