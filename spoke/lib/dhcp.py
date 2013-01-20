@@ -61,7 +61,7 @@ class SpokeDHCPServer(SpokeLDAP):
     def get(self, dhcp_server):
         """Search for a DHCP server; return a results list."""
         dn = self.base_dn
-        filter = 'cn=%s' % dhcp_server
+        filter = '(&(cn=%s)(dhcpServiceDN=*))' % dhcp_server
         result = self._get_object(dn, self.search_scope, filter)
         self.log.debug('Result: %s' % result)
         return result
