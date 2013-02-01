@@ -122,12 +122,12 @@ def power_create(vm_name):
     return result
 
 
-def power_delete(vm_name):
+def power_delete(vm_name, force=False):
     try:
         conf = _spoke_config(_salt_config('config'))
         hv_uri = conf.get('VM', 'hv_uri')
         vmp = SpokeVMPowerXen(hv_uri, vm_name)
-        result = vmp.delete()
+        result = vmp.delete(force=force)
     except error.SpokeError as e:
         result = common.handle_error(e)
     return result
