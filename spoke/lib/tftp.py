@@ -172,10 +172,10 @@ class SpokeTFTP:
         dst = self.tftp_dir + self.tftp_prefix + mac_file
         #Make sure the file exists before deleting
         if os.path.lexists(dst):
-            self.log.debug('Deleting link to mac %s' % mac)
+            self.log.debug('Deleting tftp config %s' % dst)
             os.unlink(dst)
         else:
-            msg = "Link to mac %s doesn't exist, can't delete" % mac
+            msg = "Tftp config file %s doesn't exist, can't delete" % dst
             raise error.NotFound, msg
         result = self.search(mac)
         if result['exit_code'] == 3 and result['count'] == 0:
