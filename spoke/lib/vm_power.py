@@ -16,6 +16,7 @@ LibvirtError - raised on failed libvirt actions.
 '''
 
 # core modules
+import time
 import traceback
 
 # own modules
@@ -122,7 +123,7 @@ class SpokeVMPower:
         else: # Regular shutdown
             try:
                 result = self.dom.shutdown()
-                msg = "Powered off %s" % self.vm_name
+                msg = "Shutting down %s" % self.vm_name
                 self.log.debug(msg)
             except libvirt.libvirtError:
                 msg = "VM %s is already powered off" % self.vm_name
@@ -131,18 +132,27 @@ class SpokeVMPower:
             msg = 'Unknown error shutting down VM, libvirt returned %s' % result
             raise error.LibvirtError(msg)
         result = self.get()
-        #For some reason if we force off then check state we get no state so the 
-        #ValidationError below gets raised, for now changing if statement so
-        #we get success if forceoff
-        if result['exit_code'] == 0 and (result['data'][0]['state'] == 'Off' or force == True):
-            result['msg'] = "Powered off %s:" % result['type']
-            return result
-        else:
-            msg = 'Power operation returned OK, but %s state is %s' % \
-                (result['data'][0]['state'], result['data'][0]['state'])
-            raise error.ValidationError(msg)
-        return result
-        #self.conn.close()      
+        # For regular power off requests we have to wait for the OS to shutdown
+        # so we retry a few times
+        # persistent VMs should return 'Off' when shutdown
+        # transient VMs should return 'No State' (as the VM is done)
+        tries = 1
+        wait = 3
+        retries = self.config.get('VM', 'status_retries', 5)
+        while tries < retries:
+            state = result['data'][0]['state']
+            if result['exit_code'] == 0 and (state == 'Off' or \
+                                             state == 'No State'):
+                result['msg'] = "Powered off %s:" % result['type']
+                return result
+            time.sleep(wait)
+            result = self.get()
+            wait += 3
+            tries += 1
+        # if we get here, VM state never returned Off 
+        msg = 'Power operation returned OK, but %s state is %s' % \
+                (self.vm_name, result['data'][0]['state'])
+        raise error.ValidationError(msg)
     
     def _lookupState(self, id):
         '''internal, just returns state from state id number'''

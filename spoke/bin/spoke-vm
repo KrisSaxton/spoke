@@ -36,7 +36,7 @@ Examples:
     spoke-vm -v -VS
     spoke-vm -V --create test-01 01 256 1 xen basic with_internet
     spoke-vm -VD test-01
-    spoke-vm -P test-01 on
+    spoke-vm -PM test-01 on
 """
     parser = OptionParser(usage, version=version)
     group = OptionGroup(parser, "Common Options")
@@ -169,7 +169,7 @@ Examples:
             elif options.modify:
                 result = vmp.modify(state)
             elif options.delete:
-                result = vmp.delete()
+                result = vmp.delete(force=options.force)
         log.info(result['msg'])
         if (options.search and result['count'] > 0) or options.create:
             log.info(result['data'])
