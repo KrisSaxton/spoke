@@ -36,7 +36,7 @@ Examples:
     spoke-ip -N --search --dc dc01 192.168.0.1 24
     spoke-ip -ND 192.168.0.1 24
     spoke-ip -R 192.168.0.1 24 2
-    spoke-ip -X 192.168.0.1 192.168.0.25
+    spoke-ip -X 192.168.0.1 24 192.168.0.25
 """
     parser = OptionParser(usage, version=version)
     group = OptionGroup(parser, "Common Options")
