@@ -77,7 +77,7 @@ def delete(lv_name, force=False, vg_name=None):
     conf = _spoke_config(_salt_config('config'))
     if not vg_name:
         vg_name = conf.get('LVM', 'lv_def_vg_name')
-    if force is True:
+    if force:
         try:
             lv = SpokeLVM(vg_name)
             result = lv.delete(lv_name)
