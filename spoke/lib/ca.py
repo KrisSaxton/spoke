@@ -17,16 +17,15 @@ TODO Support different key algorithms
 TODO Support for creation/use of CRLs (i.e. revocation)
 TODO Support for Authority Key Identifier (currently bust in M2Crypto)
 """
-
 # core modules
-import traceback
-import hashlib
 import os.path
+import hashlib
+import traceback
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
+import spoke.lib.log as logger
 import spoke.lib.common as common
 
 # 3rd party modules
@@ -43,7 +42,7 @@ class SpokeCA():
     def __init__(self, ca_name):    
         """Get config, setup logging."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logger.log_to_console()
         self.ca_name = common.is_shell_safe(ca_name)
         self.ca_base_dir = self.config.get('CA', 'ca_base_dir')
         self.ca_dir = os.path.join(self.ca_base_dir, self.ca_name) 
@@ -254,7 +253,7 @@ class SpokeCSR():
     def __init__(self, cn, requester=None, ca=None):    
         """Get config, setup logging."""
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logger.log_to_console()
         if not requester:
             requester = self.config.get('CA', 'ca_default_ca')
         requester = common.is_shell_safe(requester)
@@ -376,7 +375,7 @@ class SpokeCert():
     def __init__(self, cn, requester, signer=None):    
         """Get config, setup logging."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logger.log_to_console()
         self.reqca = self._get_ca(requester)
         if signer:
             self.signca = self._get_ca(signer)

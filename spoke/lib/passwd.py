@@ -7,10 +7,9 @@ AuthError - raised on failed authentication attempts.
 NotFound - raised on failure to find an object when one is expected.
 AlreadyExists -raised on attempts to create an object when one already exists.
 """
-
 # core modules
 import os
-import ldap
+import logging
 import hashlib
 from base64 import encodestring as encode
 from base64 import decodestring as decode
@@ -18,9 +17,11 @@ from base64 import decodestring as decode
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 from spoke.lib.directory import SpokeLDAP
 from spoke.lib.user import SpokeUser
+
+# 3rd party modules
+import ldap
 
 class SpokePwd(SpokeLDAP):
     
@@ -30,7 +31,7 @@ class SpokePwd(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         try:
             self.user_pwd_attr = self.config.get('ATTR_MAP', 'user_password')
         except:

@@ -15,14 +15,13 @@ SpokeLDAPError - raised on errors during LDAP operations.
 
 TODO - greater use of ValidationError instead of NotFound or AlreadyExists
 """
-
 # core modules
+import logging
 import traceback
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 import spoke.lib.common as common
 
 # 3rd party modules
@@ -51,7 +50,7 @@ class SpokeLDAPConn:
     def __init__(self):
         """Bind to LDAP directory, return an ldap object."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.search_scope = ldap.SCOPE_SUBTREE #(2)
         self.server = self.config.get('LDAP', 'server')
         self.port = self.config.get('LDAP', 'port', '389')
@@ -84,7 +83,7 @@ class SpokeLDAP:
     def __init__(self):
         """Bind to LDAP directory; return an LDAP connection object."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.LDAP = setup().LDAP
 
     def _create_object(self, dn, dn_info):
@@ -154,7 +153,7 @@ class SpokeLDAP:
         if unique != False and len(result) > 1:
             msg = 'Multiple results found yet uniqueness requested'
             raise error.SearchUniqueError(msg)
-        result = self._process_results(result, self.__module__)
+        result = self._process_results(result, __name__)
         return result
 
     def _modify_attributes(self, dn, new_attrs, old_attrs=None):

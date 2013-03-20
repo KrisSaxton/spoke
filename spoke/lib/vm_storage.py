@@ -12,22 +12,21 @@ VMRunning - raised on failed actions due to a VM being in a running state.
 ValidationError -raised when an action completes OK but validation fails.
 LibvirtError - raised on failed libvirt actions.
 '''
-
 # core modules
 import sys
+import fcntl
+import array
+import socket
+import struct
+import logging
 import traceback
 import xml_helper as xml
 from operator import itemgetter
-import socket
-import fcntl
-import struct
-import array
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
 import spoke.lib.common as common
-import spoke.lib.logger as logger
 
 # 3rd party libs
 try:
@@ -44,7 +43,7 @@ class SpokeVMStorage:
     def __init__(self):
         """Get config and setup loggings."""
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         #This block gets interface and interface type from config file
         self._lookupInterfaces()
         #And this one does the same for disks.

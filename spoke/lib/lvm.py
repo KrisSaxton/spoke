@@ -12,9 +12,9 @@ SpokeError - raised when action fails for unknown reason.
 InsufficientResource - raised on a lack of a required resource.
 LVMError - raised on failed LVM actions.
 """
-
 # core modules
 import re
+import logging
 import traceback
 import subprocess
 
@@ -22,14 +22,13 @@ import subprocess
 import spoke.lib.error as error
 import spoke.lib.config as config
 import spoke.lib.common as common
-import spoke.lib.logger as logger
 
 class SpokeLVM:
     
     def __init__(self, vg_name=None):
         """Get config, setup logging."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         if not vg_name:
             vg_name = self.config.get('LVM', 'lv_def_vg_name')
         self.vg_name = common.is_shell_safe(vg_name)

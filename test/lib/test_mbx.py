@@ -4,6 +4,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.mbx import SpokeMbx
 
 class SpokeMbxTest(unittest.TestCase):
@@ -17,6 +18,7 @@ class SpokeMbxTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.user = self.config.get('IMAP', 'user')
         self.sep = '/'
         self.mbx_name = 'test@test.mailbox.loc'

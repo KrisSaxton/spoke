@@ -16,17 +16,17 @@ import logging.handlers
 import spoke.lib.error as error
 import spoke.lib.config as config
 
-gLog = None
+#gLog = None
 
-def setup(name, verbose=False, quiet=False):
-    """Instantiate (once only) and return Log object"""
-    global gLog
-    if gLog is not None:
-        gLog.name = 'spoke.' + name
-        pass
-    else:
-        gLog = SpokeLogger().setup(name, verbose, quiet)
-    return gLog
+#def setup(name, verbose=False, quiet=False):
+#    """Instantiate (once only) and return Log object"""
+#    global gLog
+#    if gLog is not None:
+#        gLog.name = 'spoke.' + name
+#        pass
+#    else:
+#        gLog = SpokeLogger().setup(name, verbose, quiet)
+#    return gLog
 
 class SpokeLogger:
     

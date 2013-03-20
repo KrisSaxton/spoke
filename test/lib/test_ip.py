@@ -4,6 +4,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.ip import SpokeSubnet
 
 class SpokeIPTest(unittest.TestCase):
@@ -17,6 +18,7 @@ class SpokeIPTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.subnet = '192.168.1.0'
         self.mask = 24
         self.ip_ldap_key = self.config.get('IP', 'ip_ldap_key')

@@ -5,6 +5,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.tftp import SpokeTFTP
 
 class SpokeTFTPTest(unittest.TestCase):
@@ -16,6 +17,7 @@ class SpokeTFTPTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.tftp_root = self.config.get('TFTP', 'tftp_root')
         self.tftp_conf_dir = self.config.get('TFTP', 'tftp_conf_dir')
         self.tftp_mac_prefix = self.config.get('TFTP', 'tftp_mac_prefix')
@@ -103,7 +105,7 @@ class SpokeTFTPTest(unittest.TestCase):
         tftp.create(raw_mac3, template2)
         tftp.create(raw_mac4, template2)
         result = tftp.search()['data']
-        expected_result = [{'templates' : [template, template2], 'configs' : [raw_mac3, raw_mac4, raw_mac1]}]
+        expected_result = [{'templates' : [template2, template], 'configs' : [raw_mac3, raw_mac4, raw_mac1]}]
         tftp.delete(raw_mac3)
         tftp.delete(raw_mac4)
         os.remove(self.tftp_dir + template2)
@@ -140,8 +142,8 @@ class SpokeTFTPTest(unittest.TestCase):
         os.remove(self.tftp_dir + 'badtemplate.template')
         
     def test_invalid_runid(self):
-        """Create mac config with invalid run_id; raises InputError."""
-        run_id = 'alksdj'
+        """Create mac config with unsafe run_id; raises InputError."""
+        run_id = 'alk;sdj'
         tftp = SpokeTFTP(self.tftp_root)
         self.assertRaises(error.InputError, tftp.create, self.mac, self.template, run_id)
         

@@ -10,12 +10,13 @@ InputError - raised on invalid input.
 ldap.MOD_DELETE = 1
 ldap.MOD_ADD = 0
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.common as common
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 from spoke.lib.directory import SpokeLDAP
 from spoke.lib.user import SpokeUser
 
@@ -27,7 +28,7 @@ class SpokeSVN(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.org_name = org_name
         self.user_id = user_id
         self.user = self._get_user(self.org_name, self.user_id)

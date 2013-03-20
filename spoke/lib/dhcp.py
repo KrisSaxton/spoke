@@ -15,12 +15,13 @@ InputError - raised on invalid input.
 TODO - create default group when creating service
 TODO - set group as optional parameter (defaults to 'default' group).
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.common as common
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 from spoke.lib.directory import SpokeLDAP
 
 # 3rd party modules
@@ -34,7 +35,7 @@ class SpokeDHCPServer(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -82,7 +83,7 @@ class SpokeDHCPService(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -133,7 +134,7 @@ class SpokeDHCPSubnet(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -225,7 +226,7 @@ class SpokeDHCPGroup(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -271,7 +272,7 @@ class SpokeDHCPHost(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None
@@ -342,7 +343,7 @@ class SpokeDHCPAttr(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB
         self.retrieve_attr = None

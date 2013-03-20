@@ -5,6 +5,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.vm_storage import SpokeVMStorageXen
 from spoke.lib.vm_power import SpokeVMPowerXen
 
@@ -19,13 +20,14 @@ class SpokeVMStorageTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.hv_uri = 'test:///default'
         #self.xen_uuid_template = '00000000-0000-0000-0000-XXXXXXXXXXXX'
         self.vm_name = 'testhost'
         self.vm_uuid = '1'
         self.vm_mem = '256'
         self.vm_cpu = '1'
-        self.vm_family = 'xen'
+        self.vm_family = 'test'
         self.vm_storage_layout = 'basic'
         self.vm_network_layout = 'with_internet'
         #self.vm_extra_opts = 'test'
@@ -76,7 +78,7 @@ class SpokeVMStorageTest(unittest.TestCase):
         ruuid = re.compile(r'<uuid.*?uuid>\n  ')
         result = ruuid.sub('', data[0])
         result = [result]
-        expected_result = ["<domain type='test'>\n  <name>test</name>\n  <memory>8388608</memory>\n  <currentMemory>2097152</currentMemory>\n  <vcpu>2</vcpu>\n  <os>\n    <type arch='i686'>hvm</type>\n    <boot dev='hd'/>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>destroy</on_crash>\n  <devices>\n  </devices>\n</domain>\n"]
+        expected_result = ["<domain type='test'>\n  <name>test</name>\n  <memory unit='KiB'>8388608</memory>\n  <currentMemory unit='KiB'>2097152</currentMemory>\n  <vcpu>2</vcpu>\n  <os>\n    <type arch='i686'>hvm</type>\n    <boot dev='hd'/>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>destroy</on_crash>\n  <devices>\n  </devices>\n</domain>\n"]
         self.assertEquals(result, expected_result)
         
     def test_get_all_vms(self):
@@ -93,7 +95,7 @@ class SpokeVMStorageTest(unittest.TestCase):
         ruuid = re.compile(r'<uuid.*?uuid>\n  ')
         out = ruuid.sub('', data[0])
         result = [out, data[1]]
-        expected_result = ["<domain type='test'>\n  <name>test</name>\n  <memory>8388608</memory>\n  <currentMemory>2097152</currentMemory>\n  <vcpu>2</vcpu>\n  <os>\n    <type arch='i686'>hvm</type>\n    <boot dev='hd'/>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>destroy</on_crash>\n  <devices>\n  </devices>\n</domain>\n", "<domain type='xen'>\n  <name>test2ndvm</name>\n  <uuid>00000000-0000-0000-0000-000000000001</uuid>\n  <memory>262144</memory>\n  <currentMemory>262144</currentMemory>\n  <vcpu>1</vcpu>\n  <bootloader>/usr/sbin/pypxeboot</bootloader>\n  <bootloader_args>--udhcpc=/usr/local/pkg/udhcp/sbin/udhcpc --interface=eth3 mac=02:00:00:01:00:00 --label=install-aethernet</bootloader_args>\n  <os>\n    <type arch='i686'>hvm</type>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>restart</on_crash>\n  <devices>\n    <emulator>/usr/lib/xen/bin/qemu-dm</emulator>\n    <disk type='block' device='disk'>\n      <driver name='phy'/>\n      <source dev='/dev/vg01/test2ndvm'/>\n      <target dev='hda' bus='ide'/>\n      <address type='drive' controller='0' bus='0' unit='0'/>\n    </disk>\n    <disk type='block' device='disk'>\n      <driver name='phy'/>\n      <source dev='/dev/vg02/test2ndvm'/>\n      <target dev='hdb' bus='ide'/>\n      <address type='drive' controller='0' bus='0' unit='1'/>\n    </disk>\n    <controller type='ide' index='0'/>\n    <interface type='bridge'>\n      <mac address='02:00:00:01:00:00'/>\n      <source bridge='eth3'/>\n      <script path='vif-bridge'/>\n      <target dev='vif-1.0'/>\n    </interface>\n    <interface type='bridge'>\n      <mac address='02:00:00:01:01:00'/>\n      <source bridge='eth0'/>\n      <script path='vif-bridge'/>\n      <target dev='vif-1.1'/>\n    </interface>\n    <console type='pty'>\n      <target type='xen' port='0'/>\n    </console>\n    <input type='mouse' bus='ps2'/>\n    <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'/>\n    <video>\n      <model type='cirrus' vram='9216' heads='1'/>\n    </video>\n    <memballoon model='xen'/>\n  </devices>\n</domain>\n"]
+        expected_result = ["<domain type='test'>\n  <name>test</name>\n  <memory unit='KiB'>8388608</memory>\n  <currentMemory unit='KiB'>2097152</currentMemory>\n  <vcpu>2</vcpu>\n  <os>\n    <type arch='i686'>hvm</type>\n    <boot dev='hd'/>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>destroy</on_crash>\n  <devices>\n  </devices>\n</domain>\n", "<domain type='test'>\n  <name>test2ndvm</name>\n  <uuid>00000000-0000-0000-0000-000000000001</uuid>\n  <memory unit='KiB'>262144</memory>\n  <currentMemory unit='KiB'>262144</currentMemory>\n  <vcpu>1</vcpu>\n  <bootloader>/usr/sbin/pypxeboot</bootloader>\n  <bootloader_args>--udhcpc=/usr/local/pkg/udhcp/sbin/udhcpc --interface=eth3 mac=02:00:00:01:00:00 --label=install-aethernet</bootloader_args>\n  <os>\n    <type arch='i686'>hvm</type>\n  </os>\n  <clock offset='utc'/>\n  <on_poweroff>destroy</on_poweroff>\n  <on_reboot>restart</on_reboot>\n  <on_crash>restart</on_crash>\n  <devices>\n    <emulator>/usr/lib/xen/bin/qemu-dm</emulator>\n    <disk type='block' device='disk'>\n      <driver name='phy'/>\n      <source dev='/dev/vg01/test2ndvm'/>\n      <target dev='hda' bus='ide'/>\n      <address type='drive' controller='0' bus='0' target='0' unit='0'/>\n    </disk>\n    <disk type='block' device='disk'>\n      <driver name='phy'/>\n      <source dev='/dev/vg02/test2ndvm'/>\n      <target dev='hdb' bus='ide'/>\n      <address type='drive' controller='0' bus='0' target='0' unit='1'/>\n    </disk>\n    <controller type='ide' index='0'/>\n    <interface type='bridge'>\n      <mac address='02:00:00:01:00:00'/>\n      <source bridge='eth3'/>\n      <script path='vif-bridge'/>\n      <target dev='vif-1.0'/>\n    </interface>\n    <interface type='bridge'>\n      <mac address='02:00:00:01:01:00'/>\n      <source bridge='eth0'/>\n      <script path='vif-bridge'/>\n      <target dev='vif-1.1'/>\n    </interface>\n    <console type='pty'>\n      <target type='xen' port='0'/>\n    </console>\n    <input type='mouse' bus='ps2'/>\n    <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>\n      <listen type='address' address='0.0.0.0'/>\n    </graphics>\n    <video>\n      <model type='cirrus' vram='9216' heads='1'/>\n    </video>\n  </devices>\n</domain>\n"]
         self.assertEquals(result, expected_result)
         
     def test_get_invalid_vm(self):
@@ -121,10 +123,10 @@ class SpokeVMStorageTest(unittest.TestCase):
 #        self.assertTrue(vm.delete(vm_name))
         
     def test_delete_running_vm(self):
-        """Delete a running virtual machine object; raise VMRunning."""
+        """Fail to delete a virtual machine object; raise SearchError."""
         vm_name = 'test'
         vm = SpokeVMStorageXen(self.hv_uri)
-        self.assertRaises(error.VMRunning, vm.delete, vm_name)
+        self.assertRaises(error.SearchError, vm.delete, vm_name)
         
     def test_delete_missing_vm(self):
         """Delete a running virtual machine object; raise NotFound."""

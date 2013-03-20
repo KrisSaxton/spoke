@@ -7,12 +7,13 @@ Exceptions:
 NotFound - raised on attempts to delete a missing object.
 InputError - raised on invalid input.
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.common as common
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 from spoke.lib.directory import SpokeLDAP
 from spoke.lib.org import SpokeOrg
 
@@ -24,7 +25,7 @@ class SpokeUser(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)     
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.search_scope = 2 #ldap.SCOPE_SUBTREE
         self.retrieve_attr = None
         self.org_name = org_name

@@ -10,11 +10,12 @@ ConfigError - raised on invalid configuration data.
 InsufficientResource - raised on a lack of a required resource.
 SearchError - raised to indicate unwanted search results were returned.
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 import spoke.lib.common as common
 import spoke.lib.ip_helper as ip_helper
 from spoke.lib.directory import SpokeLDAP
@@ -28,7 +29,7 @@ class SpokeSubnet(SpokeKV):
         """Get config, setup logging and Redis connection."""
         SpokeKV.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.max_mask = 16 # This is the largest network we can work with
         # Check our subnet is well formatted in dotted decimal
         if ip and mask:

@@ -14,16 +14,15 @@ VMStopped - raised on failed actions due to a VM being in a stopped state.
 ValidationError -raised when an action completes OK but validation fails.
 LibvirtError - raised on failed libvirt actions.
 '''
-
 # core modules
 import time
+import logging
 import traceback
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.common as common
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 
 # 3rd party modules
 try:
@@ -39,7 +38,7 @@ class SpokeVMPower:
     def __init__(self, vm_name):
         """Get config and setup logging."""
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         def _error_handler(self, err):
             msg = "Ignoring Libvirt error %s)" % err
             pass

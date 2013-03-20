@@ -7,12 +7,12 @@ Exceptions:
 RedisError - raised on failed Redis actions.
 """
 # core modules
+import logging
 import traceback
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 
 # 3rd party modules
 try:
@@ -39,7 +39,7 @@ class SpokeKVConn:
     def __init__(self):
         """Bind to Redis server, return an redis connection object."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.kv_host = self.config.get('KV', 'kv_host')
         self.kv_port = int(self.config.get('KV', 'kv_port', 6379))
         self.kv_db = self.config.get('KV', 'kv_db', '0')
@@ -62,5 +62,5 @@ class SpokeKV:
         """Parse configuration, setup logging; 
         bind to Redis server and return a Redis connection object."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.KV = setup().KV

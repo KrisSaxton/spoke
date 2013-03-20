@@ -9,13 +9,16 @@ InputError - raised on invalid input.
 # core modules
 import re
 import string
+import logging
 
 # own modules
 import spoke.lib.error as error
-import spoke.lib.logger as logger
-log = logger.setup('main', verbose=True, quiet=False)
+import spoke.lib.config as config
 
 version = '1.0'
+
+log = logging.getLogger(__name__)
+
 
 def is_number(string):
     try:
@@ -33,14 +36,14 @@ def is_integer(string):
     
 def is_shell_safe(string):
     """Ensure input contains no dangerous characters."""
-    max_length = 36
+    max_length = 64
     string = str(string)
     pattern = re.compile('^[-_A-Za-z0-9 \.]+$')
     valid = pattern.match(string)
-    if not valid or len(string) > 36:
+    if not valid:
         msg = '%s contains illegal characters' % string
         raise error.InputError(msg)
-    elif len(string) > max_length:
+    if len(string) > max_length:
         msg = '%s cannot be longer than %s' % (string, max_length)
         raise error.InputError(msg)
     return string

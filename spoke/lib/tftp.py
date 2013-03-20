@@ -8,17 +8,16 @@ AlreadyExists -raised on attempts to create an object when one already exists.
 InputError - raised on invalid input.
 SearchError - raised to indicate unwanted search results were returned.
 """
-
 # core modules
 import re
 import os
 import string
+import logging
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.common as common
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 
 
 class SpokeTFTP:
@@ -27,7 +26,7 @@ class SpokeTFTP:
     
     def __init__(self, tftp_root=None):
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.type = 'TFTP config'
         if not tftp_root:
             tftp_root = self.config.get('TFTP', 'tftp_root')

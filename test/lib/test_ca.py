@@ -5,6 +5,7 @@ import os.path
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.ca import SpokeCA, SpokeCSR, SpokeCACert, SpokeHostCert
 
 class SpokeCATest(unittest.TestCase):
@@ -18,6 +19,7 @@ class SpokeCATest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.ca_name = 'test-ca'
         self.ca_cn = 'Test Certificate Authority'
         self.ca_def_duration = self.config.get('CA', 'ca_def_duration')

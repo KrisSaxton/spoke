@@ -14,6 +14,8 @@ ldap.MOD_ADD = 0
 
 TODO: With a primary domain attr on the org, only the uid would be needed.
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.common as common
@@ -32,7 +34,7 @@ class SpokeEmail(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""   
         SpokeLDAP.__init__(self)     
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 0 #ldap.SCOPE_BASE
         self.org_attr = self.config.get('ATTR_MAP', 'org_attr', 'o')
@@ -234,7 +236,7 @@ class SpokeEmailDomain(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)      
         self.config = config.setup()
-        self.log = logger.setup(self.__module__)
+        self.log = logging.getLogger(__name__)
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 0 #ldap.SCOPE_BASE
         self.org_name = org_name

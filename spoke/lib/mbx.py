@@ -10,16 +10,15 @@ SpokeIMAPError - Raised if the IMAP server reports a failure.
 
 TODO raises exceptions for mailbox already exists or not found.
 """
-
 # core modules
 import re
+import logging
 import imaplib
 import traceback
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 
 class SpokeMbx():
     
@@ -28,7 +27,7 @@ class SpokeMbx():
     def __init__(self):
         """Get config, setup logging and cyrus connection."""
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         server = self.config.get('IMAP', 'server')
         port = int(self.config.get('IMAP', 'port', 143))
         self.user = self.config.get('IMAP', 'user')

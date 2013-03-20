@@ -4,6 +4,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.org import SpokeOrg
 from spoke.lib.host import SpokeHost
 from spoke.lib.host import SpokeHostUUID
@@ -17,6 +18,7 @@ class SpokeHostTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.base_dn = self.config.get('LDAP', 'basedn')
         self.search_scope = 2 # ldap.SCOPE_SUBTREE
         self.retrieve_attr = None
@@ -333,27 +335,6 @@ class SpokeHostTest(unittest.TestCase):
                           host_uuid, self.host_mem, self.host_cpu,  
                           self.host_family, self.host_type, 
                           self.host_storage_layout,self.host_network_layout,  
-                          self.host_extra_opts)
-        
-    def test_create_host_with_unkown_storage_layout(self):
-        """Create a host with an unknown storage layout; raise InputError."""
-        host = SpokeHost(self.org_name)
-        host_name = 'validhost'
-        host_storage_layout = 'supermagicsan'
-        self.assertRaises(error.InputError, host.create, host_name, 
-                          self.host_uuid, self.host_mem, self.host_cpu,  
-                          self.host_family, self.host_type, host_storage_layout, 
-                          self.host_network_layout, self.host_extra_opts)
-        
-    def test_create_host_with_unkown_network_layout(self):
-        """Create a host with an unknown network layout; raise InputError."""
-        host = SpokeHost(self.org_name)
-        host_name = 'validhost'
-        host_network_layout = 'infiniband'
-        self.assertRaises(error.InputError, host.create, host_name, 
-                          self.host_uuid, self.host_mem, self.host_cpu,  
-                          self.host_family, self.host_type, 
-                          self.host_storage_layout, host_network_layout,  
                           self.host_extra_opts)
         
         

@@ -4,6 +4,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.org import SpokeOrg
 from spoke.lib.org import SpokeOrgChild
 
@@ -18,6 +19,7 @@ class SpokeOrgTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.org_name = 'SpokeOrgTest'
         self.org_suffix_name = 'spokeorg.com'
         self.base_dn = self.config.get('LDAP', 'basedn')

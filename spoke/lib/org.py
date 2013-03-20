@@ -7,11 +7,12 @@ SpokeOrgChild - Create/Get/Modify/Delete LDAP organisation child containers.
 Exceptions:
 NotFound - raised when an operation fails to find an expected object.
 """
+# core modules
+import logging
 
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
 from spoke.lib.directory import SpokeLDAP
 
 class SpokeOrg(SpokeLDAP):
@@ -22,7 +23,7 @@ class SpokeOrg(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.search_scope = 2 # ldap.SCOPE_SUBTREE
         self.retrieve_attr = None
         self.base_dn = self.config.get('LDAP', 'basedn')
@@ -129,7 +130,7 @@ class SpokeOrgChild(SpokeLDAP):
         """Get config, setup logging and LDAP connection."""
         SpokeLDAP.__init__(self)
         self.config = config.setup()
-        self.log = logger.setup(__name__)
+        self.log = logging.getLogger(__name__)
         self.search_scope = 2 # ldap.SCOPE_SUBTREE
         self.retrieve_attr = None
         self.base_dn = self.config.get('LDAP', 'basedn')

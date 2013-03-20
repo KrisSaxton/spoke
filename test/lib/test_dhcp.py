@@ -6,6 +6,7 @@ import unittest
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.dhcp import SpokeDHCPServer
 from spoke.lib.dhcp import SpokeDHCPService
 from spoke.lib.dhcp import SpokeDHCPSubnet
@@ -24,6 +25,7 @@ class SpokeDHCPTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.org_name = 'SpokeOrgTest'
         self.base_dn = self.config.get('DHCP', 'dhcp_basedn')
         self.search_scope = 2 # ldap.SUB

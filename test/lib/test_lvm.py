@@ -10,6 +10,7 @@ import decimal
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
+import spoke.lib.log as logger
 from spoke.lib.lvm import SpokeLVM
 
 # This volume group must exist, be empty and have at least 1G of free space
@@ -25,6 +26,7 @@ class SpokeLVMTest(unittest.TestCase):
         custom_config = '/tmp/spoke.conf'
         config_files = (common_config, custom_config)
         self.config = config.setup(config_files)
+        self.log = logger.log_to_console()
         self.lv_units = self.config.get('LVM', 'lv_units')
         self.lv_name = 'testlv01'
         self.lv_size = 1

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Command line interface to Spoke TFTP API."""
-
+"""Command line interface to Spoke TFTP API.
+"""
 # core modules
 import sys
 from optparse import OptionParser, OptionGroup
@@ -8,7 +8,7 @@ from optparse import OptionParser, OptionGroup
 # own modules
 import spoke.lib.error as error
 import spoke.lib.config as config
-import spoke.lib.logger as logger
+import spoke.lib.log as logger
 import spoke.lib.common as common
 
 version = common.version
@@ -38,6 +38,8 @@ Examples:
                 
     parser = OptionParser(usage, version=version)
     group = OptionGroup(parser, "Common Options")
+    group.add_option('--trace', action='store_true',
+                          dest='trace', help="debug console logging")
     group.add_option('-v', '--verbose', action='store_true', 
                           dest='verbose', help="verbose console logging")
     group.add_option('-q', '--quiet', action='store_true', 
@@ -63,13 +65,30 @@ Examples:
         
     (options, args) = parser.parse_args()
 
+    # Setup config
     try:
         conf = config.setup(options.config_file)
     except error.ConfigError, e:
         print e.msg
         raise e
 
-    log = logger.setup('main', verbose=options.verbose, quiet=options.quiet)
+    # Setup logging
+    log_file = conf.get('LOGGING', 'log_filename', '/tmp/spoke.log')
+    log_level = conf.get('LOGGING', 'log_level', 'info')
+    if options.trace:
+        log_level = 'debug'
+    size = 1024*1024*5 # 5MBytes
+    max_size = conf.get('LOGGING', 'log_max_size', size) 
+    retain = conf.get('LOGGING', 'log_keep', 5) 
+    log = logger.log_to_file(level=log_level, log_file=log_file,
+                             max_size=max_size, retain=retain,
+                             trace=options.trace)
+        
+    if options.verbose:
+        log_level = 'debug'
+    if options.quiet:
+        log_level = 'critical'
+    log = logger.log_to_console(level=log_level, trace=options.trace)
 
     if options.search:
         if len(args) == 0:
